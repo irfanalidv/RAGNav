@@ -1,0 +1,28 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Virtualenvs
+.venv/
+venv/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Secrets (never commit)
+.env
+.env.*
+
+# Local outputs / caches
+cache/
+data/
+*.sqlite3
+*.db
+*.log

@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ragnav"
+version = "0.1.0"
+description = "Hybrid structure-aware retrieval (BM25 + embeddings + structure graph expansion), Mistral-first."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "RAGNav Contributors" }]
+keywords = ["rag", "retrieval", "pdf", "papers", "graphrag", "bm25"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Text Processing :: Indexing",
+]
+
+dependencies = [
+  "numpy>=1.26.0",
+  "rank-bm25>=0.2.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/irfanalidv/RAGNav"
+Repository = "https://github.com/irfanalidv/RAGNav"
+
+[project.optional-dependencies]
+mistral = [
+  "mistralai>=1.9.0",
+  "python-dotenv>=1.0.1",
+]
+pdf = [
+  "pymupdf>=1.26.0",
+  "requests>=2.31.0",
+]
+messy = [
+  "beautifulsoup4>=4.12.0",
+]
+dev = [
+  "black>=24.0.0",
+  "ruff>=0.6.0",
+  "build>=1.2.0",
+  "twine>=5.0.0",
+]
+
+[project.scripts]
+ragnav = "ragnav.cli:main"
+
+[tool.ruff]
+line-length = 100
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ragnav*"]
