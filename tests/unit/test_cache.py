@@ -4,12 +4,17 @@ import time
 
 import numpy as np
 
+from ragnav.cache import EmbeddingCache as EmbeddingCacheFromPkg
 from ragnav.cache.sqlite_cache import (
     EmbeddingCache,
     RetrievalCache,
     SqliteCacheConfig,
     SqliteKV,
 )
+
+
+def test_cache_package_init_exports_embedding_cache():
+    assert EmbeddingCacheFromPkg is EmbeddingCache
 
 
 def test_sqlite_kv_get_set_delete(tmp_path):

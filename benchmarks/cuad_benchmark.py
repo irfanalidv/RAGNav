@@ -34,7 +34,12 @@ _BENCH_DIR = Path(__file__).resolve().parent
 if str(_BENCH_DIR) not in sys.path:
     sys.path.insert(0, str(_BENCH_DIR))
 
-from _runner import print_table, score_any_gold  # noqa: E402
+from _runner import (  # noqa: E402
+    RetrievalScore,
+    print_table,
+    score_any_gold,
+    score_span_recall,
+)
 
 _CUAD_DATA_ZIP = "https://github.com/TheAtticusProject/cuad/raw/main/data.zip"
 
@@ -121,8 +126,17 @@ def _evaluate(
     expand_graph: bool,
     graph_edge_types: Optional[set[str]],
     fusion: str = "rrf",
-) -> list[tuple[list[str], frozenset[str]]]:
-    results: list[tuple[list[str], frozenset[str]]] = []
+) -> tuple[
+    list[tuple[list[str], frozenset[str]]],
+    list[tuple[list[Any], list[str]]],
+]:
+    """
+    Returns block-id ranked lists for standard R@k, plus parallel span-eval rows:
+    (blocks in retrieval order, gold answer strings).
+    """
+    block_results: list[tuple[list[str], frozenset[str]]] = []
+    span_rows: list[tuple[list[Any], list[str]]] = []
+    by_id = retriever.index.blocks_by_id
     for row in eval_rows:
         qid = row["id"]
         gold = gold_by_qid.get(qid)
@@ -144,8 +158,11 @@ def _evaluate(
         ranked = list(trace.get("seed_block_ids") or [])[:10]
         if not ranked:
             ranked = [b.block_id for b in res.blocks[:10]]
-        results.append((ranked, gold))
-    return results
+        block_results.append((ranked, gold))
+        blocks_ordered = [by_id[bid] for bid in ranked if bid in by_id]
+        texts = [t for t in row["answers"].get("text") or [] if t.strip()]
+        span_rows.append((blocks_ordered, texts))
+    return block_results, span_rows
 
 
 def _system_block(model_name: str) -> str:
@@ -235,11 +252,12 @@ def main() -> int:
         ("Hybrid + graph expansion", 0.5, 0.5, True, True, graph_types, False, "rrf"),
         ("Hybrid RRF + Legal Ingest + Reranker", 0.5, 0.5, False, False, None, True, "rrf"),
     ]
-    scores = []
+    scores_block: list[RetrievalScore] = []
+    scores_span: list[RetrievalScore] = []
     for label, bw, vw, ex_s, ex_g, gt, use_rr, fus in configs:
         print("Evaluating: %s…" % label, flush=True)
         r = retriever_rerank if use_rr else retriever_base
-        raw = _evaluate(
+        raw_block, raw_span = _evaluate(
             r,
             eval_rows,
             gold_by_qid,
@@ -250,10 +268,15 @@ def main() -> int:
             graph_edge_types=gt,
             fusion=fus,
         )
-        scores.append(score_any_gold(label, raw))
+        scores_block.append(score_any_gold(label, raw_block))
+        scores_span.append(score_span_recall(label, raw_span))
 
     print()
-    print_table(scores)
+    print("Block-level (gold block_id in top-k)")
+    print_table(scores_block)
+    print()
+    print("Span recall (gold answer substring in concatenated top-k block text)")
+    print_table(scores_span)
 
     results_dir = _BENCH_DIR / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -268,10 +291,21 @@ def main() -> int:
         "seed: %d" % args.seed,
         "n_unique_contracts in index: %d" % n_contracts,
         "",
+        "=== Block-level (gold block_id in top-k) ===",
         header,
         "─" * len(header),
     ]
-    for s in scores:
+    for s in scores_block:
+        lines_out.append(s.row())
+    lines_out.extend(
+        [
+            "",
+            "=== Span recall (gold answer substring in concatenated top-k blocks) ===",
+            header,
+            "─" * len(header),
+        ]
+    )
+    for s in scores_span:
         lines_out.append(s.row())
     lines_out.extend(["", "--- System ---", _system_block(model_name), ""])
     out_path.write_text("\n".join(lines_out), encoding="utf-8")

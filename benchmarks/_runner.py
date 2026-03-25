@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import statistics
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -62,6 +63,34 @@ def score_any_gold(method: str, results: list[tuple[list[str], frozenset[str]]])
     r5 = statistics.mean(recall_at_k_any(r, g, 5) for r, g in results)
     mrr = statistics.mean(mrr_at_k_any(r, g, 10) for r, g in results)
     return RetrievalScore(method, r1, r3, r5, mrr, len(results))
+
+
+def span_recall_at_k_blocks(blocks: list[Any], gold_texts: list[str], k: int) -> float:
+    """
+    True if any gold answer string appears inside the concatenation of the first ``k``
+    blocks' text (case-insensitive). Suited to clause QA where the span may cross blocks.
+    """
+    combined = " ".join((getattr(b, "text", "") or "") for b in blocks[:k]).lower()
+    return 1.0 if any(t.lower() in combined for t in gold_texts if t.strip()) else 0.0
+
+
+def span_mrr_at_k_blocks(blocks: list[Any], gold_texts: list[str], k: int) -> float:
+    """First prefix length (1..k) whose concatenation contains a gold span → 1/rank."""
+    acc = ""
+    for i, b in enumerate(blocks[:k], 1):
+        acc = (acc + " " + (getattr(b, "text", "") or "")).lower()
+        if any(t.lower() in acc for t in gold_texts if t.strip()):
+            return 1.0 / i
+    return 0.0
+
+
+def score_span_recall(method: str, rows: list[tuple[list[Any], list[str]]]) -> RetrievalScore:
+    """Mean span-based recall / MRR over (ordered retrieved blocks, gold answer strings)."""
+    r1 = statistics.mean(span_recall_at_k_blocks(b, t, 1) for b, t in rows)
+    r3 = statistics.mean(span_recall_at_k_blocks(b, t, 3) for b, t in rows)
+    r5 = statistics.mean(span_recall_at_k_blocks(b, t, 5) for b, t in rows)
+    mrr = statistics.mean(span_mrr_at_k_blocks(b, t, 10) for b, t in rows)
+    return RetrievalScore(method, r1, r3, r5, mrr, len(rows))
 
 
 def score(method: str, results: list[tuple[list[str], str]]) -> RetrievalScore:

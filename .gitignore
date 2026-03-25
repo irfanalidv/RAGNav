@@ -20,8 +20,8 @@ dist/
 .env
 .env.*
 
-# Local outputs / caches
-cache/
+# Local outputs / caches (leading / — repo root only; do not ignore ragnav/cache/)
+/cache/
 data/
 *.sqlite3
 *.db

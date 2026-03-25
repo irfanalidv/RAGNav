@@ -6,12 +6,47 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI downloads](https://img.shields.io/pypi/dm/ragnav.svg)](https://pypi.org/project/ragnav/)
 
+**Production-grade hybrid retrieval — no API key required.**
+
+RAGNav combines BM25, sentence-transformer embeddings, and document-structure graph expansion in one library that runs **entirely offline** with open models.
+
+**SQuAD R@3: 0.956** on 500 questions, zero API calls.  
+PageIndex (the closest alternative) requires GPT-4o for its tree workflow and does not publish SQuAD numbers.
+
+```bash
+pip install ragnav[embeddings]
+```
+
+```python
+from ragnav import RAGNavIndex, RAGNavRetriever
+from ragnav.ingest.markdown import ingest_markdown_string
+from ragnav.llm.fake import FakeLLMClient
+
+md = "# Demo\n\nParis is the capital of France."
+doc, blocks = ingest_markdown_string(md, name="demo.md")
+llm = FakeLLMClient()
+index = RAGNavIndex.build(
+    documents=[doc],
+    blocks=blocks,
+    llm=llm,
+    use_sentence_transformers=True,
+    vector_model="all-MiniLM-L6-v2",
+    embed_batch_size=32,
+)
+retriever = RAGNavRetriever(index=index, llm=llm)
+result = retriever.retrieve(
+    "What is the capital of France?",
+    top_k=5,
+    expand_structure=False,
+    expand_graph=False,
+)
+print(result.blocks[0].text)  # Paris is the capital of France.
+print(result.confidence)  # ConfidenceLevel.HIGH (heuristic; see models.ConfidenceLevel)
+```
+
 ![RAGNav architecture](https://raw.githubusercontent.com/irfanalidv/RAGNav/main/assets/ragnav-architecture.png)
 
-**RAGNav** is **paper-native, navigation-first RAG** for long documents (especially **PDF research papers**).
-
-Instead of “embed query → retrieve chunks”, it answers:
-**Where in this document should we look first?** (pages/sections/refs), then retrieves evidence.
+For **long PDFs and papers**, RAGNav is also **navigation-first**: route pages/sections, then retrieve evidence with provenance — not only “embed query → retrieve chunks”.
 
 ## The problem (why long-document QA fails)
 
@@ -272,15 +307,25 @@ by default; optional **cross-encoder reranking** is exposed on `RAGNavRetriever(
 | SQuAD | Embedding-only | 0.772 | 0.906 | 0.942 | 0.844 |
 | SQuAD | **RAGNav hybrid (RRF 0.5/0.5)** | **0.864** | **0.956** | **0.978** | **0.912** |
 | SQuAD | Hybrid RRF + cross-encoder reranker | 0.862 | 0.944 | 0.968 | 0.906 |
-| CUAD | BM25-only | 0.010 | 0.044 | 0.047 | 0.030 |
-| CUAD | **RAGNav hybrid (legal ingest + RRF)** | **0.010** | **0.037** | **0.051** | **0.026** |
-| CUAD | **RAGNav + graph expansion** | **0.010** | **0.037** | **0.051** | **0.026** |
+| CUAD (block-level) | BM25-only | 0.017 | 0.040 | 0.044 | 0.032 |
+| CUAD (block-level) | **RAGNav hybrid (legal ingest + RRF)** | **0.007** | **0.047** | **0.051** | **0.027** |
+| CUAD (block-level) | **RAGNav + graph expansion** | **0.007** | **0.047** | **0.051** | **0.027** |
+
+### CUAD — span recall (concatenated top-k blocks)
+
+Gold answer span may sit across legal-ingest block boundaries; **span S@k** is true if any gold string appears in the concatenation of the top-k retrieved blocks’ text (fairer for clauses).
+
+| Dataset | Method | S@1 | S@3 | S@5 | MRR@10 |
+|---------|--------|-----|-----|-----|--------|
+| CUAD (span) | BM25-only | 0.020 | 0.061 | 0.071 | 0.044 |
+| CUAD (span) | **RAGNav hybrid (legal ingest + RRF)** | **0.010** | **0.071** | **0.074** | **0.037** |
+| CUAD (span) | **RAGNav + graph expansion** | **0.010** | **0.071** | **0.074** | **0.037** |
 
 *SQuAD: 500 questions, 447 unique passages, `rajpurkar/squad` validation set, CC BY-SA 4.0*
 
 *The previously published **0.968** SQuAD R@3 used weighted min–max fusion; the default hybrid path is now **RRF** (`fusion="rrf"` in `retrieve()`). Use `fusion="weighted"` to approximate the older fusion behavior.*
 
-*CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0*
+*CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0. Block-level R@k requires a gold block_id in the top-k list; span S@k only requires the gold answer text to appear in the merged text of those blocks.*
 
 ### vs. PageIndex
 
@@ -289,7 +334,7 @@ by default; optional **cross-encoder reranking** is exposed on `RAGNavRetriever(
 | Requires GPT-4o / paid LLM | Yes | No — runs on any LLM or embedding-only |
 | Fully offline (no API key) | No | Yes |
 | SQuAD R@3 | Not published | **0.956** (hybrid RRF) |
-| CUAD R@3 | Not published | **0.044** (BM25 best on current CUAD harness) |
+| CUAD clause retrieval (span S@3) | Not published | **0.071** (hybrid RRF + legal ingest; see benchmark file for block-level R@3) |
 | FinanceBench accuracy | 98.7% (GPT-4o) | TBD (Mistral) |
 | Handles markdown / chat / email | No | Yes |
 | Structure-aware graph expansion | No | Yes |

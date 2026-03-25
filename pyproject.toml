@@ -53,6 +53,7 @@ embeddings = [
 reranking = [
   "sentence-transformers>=3.0.0",
 ]
+# mistralai excluded from `all` — paid API client; install with: pip install ragnav[mistral]
 all = [
   "numpy>=1.26.0",
   "rank-bm25>=0.2.2",
@@ -60,6 +61,7 @@ all = [
   "requests>=2.31.0",
   "beautifulsoup4>=4.12.0",
   "sentence-transformers>=3.0.0",
+  "datasets>=2.14.0",
 ]
 dev = [
   "black>=24.0.0",

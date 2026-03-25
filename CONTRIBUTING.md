@@ -37,12 +37,43 @@ pytest tests/unit/ -q
 
 ## Release checklist
 
-1. Update the version in `pyproject.toml` and `ragnav/__init__.py` (`__version__`) so they match.
-2. Run `pytest tests/unit/ -q` and fix failures.
-3. Run `ruff check ragnav` and `black --check ragnav`.
-4. Update `README.md` if public APIs or install instructions changed.
-5. Build and smoke-test the sdist/wheel: `python -m build` and install the wheel in a clean virtualenv.
-6. Tag the release and publish to PyPI (e.g. `twine upload dist/*`).
+Run every step before `twine upload`:
+
+```bash
+# 1. Version consistent
+grep "version" pyproject.toml ragnav/__init__.py
+
+# 2. Tests green
+pytest tests/unit/ -q
+
+# 3. No AI smell
+grep -rn "Initialize \|This class\|This module" ragnav/ --include="*.py"
+grep -rn 'logger\..*f"' ragnav/ --include="*.py"
+grep -rn "except:" ragnav/ --include="*.py"
+
+# 4. No secrets
+grep -rn "OPENAI_API_KEY\|sk-\|password\s*=" ragnav/ --include="*.py"
+
+# 5. Ruff clean
+ruff check ragnav/
+
+# 6. Build
+rm -rf dist/ build/
+python -m build
+twine check dist/*
+
+# 7. TestPyPI
+twine upload --repository testpypi dist/*
+pip install --index-url https://test.pypi.org/simple/ ragnav==0.3.0
+python -c "import ragnav; print(ragnav.__version__)"
+
+# 8. Publish
+twine upload dist/*
+git tag -a v0.3.0 -m "v0.3.0: confidence, cost tracking, fallback, reranker"
+git push origin main --tags
+```
+
+Adjust the version in step 7–8 when releasing a new version.
 
 ## Pull requests
 
