@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Union
 
+from .exceptions import RAGNavIngestError
+
 
 def download_bytes(
     url: str, *, out_path: Optional[Union[str, Path]] = None, timeout_s: int = 60
@@ -16,7 +18,7 @@ def download_bytes(
     try:
         import requests
     except Exception as e:
-        raise RuntimeError("Missing optional dependency `requests`. Install with: pip install -e \".[pdf]\"") from e
+        raise RAGNavIngestError("Missing optional dependency `requests`. Install with: pip install -e \".[pdf]\"") from e
 
     resp = requests.get(url, timeout=timeout_s)
     resp.raise_for_status()

@@ -1,9 +1,7 @@
 from .models import Block, Document, RetrievalResult
 from .retrieval import RAGNavIndex, RAGNavRetriever
-from .llm.base import LLMClient
-from .graph import BlockGraph, Edge, EdgeType
-from .papers import PaperRAG, PaperRAGConfig
-from .net import download_bytes, download_pdf
+
+__version__ = "0.3.0"
 
 __all__ = [
     "Block",
@@ -11,13 +9,5 @@ __all__ = [
     "RetrievalResult",
     "RAGNavIndex",
     "RAGNavRetriever",
-    "LLMClient",
-    "BlockGraph",
-    "Edge",
-    "EdgeType",
-    "PaperRAG",
-    "PaperRAGConfig",
-    "download_bytes",
-    "download_pdf",
+    "__version__",
 ]
-

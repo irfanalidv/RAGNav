@@ -1,7 +1,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Literal, Optional
+
+
+class ConfidenceLevel(str, Enum):
+    """
+    Coarse retrieval confidence after hybrid fusion (RRF or weighted) and optional reranking.
+
+    Thresholds assume **min–max normalized** scores in ``[0, 1]`` computed from the top
+    of the fused candidate list (or from the reranker pool when a reranker is used), not
+    raw BM25 or raw RRF sums.
+    """
+
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 
 BlockType = Literal[
@@ -40,5 +55,7 @@ class Block:
 class RetrievalResult:
     query: str
     blocks: list[Block]
+    confidence: ConfidenceLevel = ConfidenceLevel.LOW
+    top_score: float = 0.0
     trace: dict[str, Any] = field(default_factory=dict)
 

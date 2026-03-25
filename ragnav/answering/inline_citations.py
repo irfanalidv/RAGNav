@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 from ..json_utils import extract_json
 from ..llm.base import LLMClient

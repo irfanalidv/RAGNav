@@ -14,7 +14,7 @@ def _cmd_vectorless_pdf(args: argparse.Namespace) -> int:
     from .pipelines.vectorless import VectorlessRagConfig, vectorless_answer, vectorless_rag_pdf_url
 
     llm = MistralClient()
-    kv = SqliteKV(SqliteCacheConfig(path=args.cache_db)) if args.cache_db else None
+    kv = SqliteKV(SqliteCacheConfig(db_path=args.cache_db)) if args.cache_db else None
     rcache = RetrievalCache(kv) if kv else None
     retrieve_fn, _doc_id = vectorless_rag_pdf_url(
         pdf_url=args.pdf_url,
@@ -37,7 +37,7 @@ def _cmd_hybrid_pdf(args: argparse.Namespace) -> int:
     from .pipelines.hybrid import HybridRagConfig, hybrid_answer, hybrid_rag_pdf_url
 
     llm = MistralClient()
-    kv = SqliteKV(SqliteCacheConfig(path=args.cache_db)) if args.cache_db else None
+    kv = SqliteKV(SqliteCacheConfig(db_path=args.cache_db)) if args.cache_db else None
     ecache = EmbeddingCache(kv) if kv else None
     rcache = RetrievalCache(kv) if kv else None
     cfg = HybridRagConfig(
@@ -84,7 +84,7 @@ def _cmd_agentic_pdf(args: argparse.Namespace) -> int:
     from .pipelines.hybrid import HybridRagConfig
 
     llm = MistralClient()
-    kv = SqliteKV(SqliteCacheConfig(path=args.cache_db)) if args.cache_db else None
+    kv = SqliteKV(SqliteCacheConfig(db_path=args.cache_db)) if args.cache_db else None
     ecache = EmbeddingCache(kv) if kv else None
     rcache = RetrievalCache(kv) if kv else None
     retrieval = HybridRagConfig(
@@ -120,7 +120,7 @@ def _cmd_paper_pdf(args: argparse.Namespace) -> int:
     from .papers import PaperRAG, PaperRAGConfig
 
     llm = MistralClient()
-    kv = SqliteKV(SqliteCacheConfig(path=args.cache_db)) if args.cache_db else None
+    kv = SqliteKV(SqliteCacheConfig(db_path=args.cache_db)) if args.cache_db else None
     ecache = EmbeddingCache(kv) if kv else None
     rcache = RetrievalCache(kv) if kv else None
 

@@ -4,6 +4,8 @@ import os
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 
+from ..cost import CostTracker, estimate_tokens_from_text
+from ..exceptions import RAGNavLLMError
 from .base import LLMClient
 
 @dataclass(frozen=True)
@@ -21,7 +23,7 @@ class MistralClient(LLMClient):
       pip install -e ".[mistral]"
     """
 
-    def __init__(self, cfg: Optional[MistralConfig] = None):
+    def __init__(self, cfg: Optional[MistralConfig] = None, cost_tracker: Optional[CostTracker] = None):
         try:
             from dotenv import load_dotenv
         except Exception:
@@ -33,27 +35,39 @@ class MistralClient(LLMClient):
         try:
             from mistralai import Mistral
         except Exception as e:
-            raise RuntimeError(
+            raise RAGNavLLMError(
                 "Missing optional dependency `mistralai`. Install with: pip install -e \".[mistral]\""
             ) from e
 
         self.cfg = cfg or MistralConfig()
         api_key = os.getenv(self.cfg.api_key_env)
         if not api_key:
-            raise RuntimeError(
-                f"Missing {self.cfg.api_key_env}. Set it in your environment (do not hardcode keys)."
+            raise RAGNavLLMError(
+                f"Missing {self.cfg.api_key_env}. Set it in your environment or a `.env` file; do not hardcode keys."
             )
         self._client = Mistral(api_key=api_key)
+        self.cost_tracker = cost_tracker
 
     def chat(
         self, *, messages: list[dict[str, str]], model: Optional[str] = None, temperature: float = 0
     ) -> str:
+        model_name = model or self.cfg.chat_model
+        if self.cost_tracker is not None:
+            self.cost_tracker.check_budget()
+        prompt_text = "\n".join(str(m.get("content") or "") for m in messages)
         resp = self._client.chat.complete(
-            model=model or self.cfg.chat_model,
+            model=model_name,
             messages=messages,
             temperature=temperature,
         )
-        return (resp.choices[0].message.content or "").strip()
+        text = (resp.choices[0].message.content or "").strip()
+        if self.cost_tracker is not None:
+            self.cost_tracker.record(
+                model_name,
+                estimate_tokens_from_text(prompt_text),
+                estimate_tokens_from_text(text),
+            )
+        return text
 
     def embed(self, *, inputs: Iterable[str], model: Optional[str] = None) -> list[list[float]]:
         resp = self._client.embeddings.create(

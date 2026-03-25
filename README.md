@@ -192,9 +192,9 @@ Output (real, trimmed):
 ### PaperRAG (page routing + cross-ref following)
 
 ```python
-from ragnav import PaperRAG, PaperRAGConfig
 from ragnav.llm.mistral import MistralClient
-from ragnav import download_pdf
+from ragnav.net import download_pdf
+from ragnav.papers import PaperRAG, PaperRAGConfig
 
 llm = MistralClient()
 cfg = PaperRAGConfig(max_pages=25, top_pages=4, follow_refs=True)
@@ -242,7 +242,59 @@ python3 examples/graphs/ragnav_entity_graphrag_pdf.py
 
 ---
 
+## Production features
+
+Features PageIndex does not have:
+
+| Feature | What it does |
+|---------|-------------|
+| `ConfidenceLevel` | Every retrieval result carries HIGH/MEDIUM/LOW confidence so you can decide whether to show the answer or say "I'm not sure." |
+| `QueryFallback` | On LOW/MEDIUM confidence, automatically retries with LLM-generated query rephrasing. Prevents silent failures. |
+| `CostTracker` | Tracks token usage and cost per LLM call. Set a `budget_usd` to get `BudgetExceededError` before you overspend. |
+| `CrossEncoderReranker` | Optional second-stage reranker with **≥50** first-stage candidates (see `retrieve()`). On small SQuAD-style corpora the default MS MARCO MiniLM reranker can trail hybrid RRF alone; use domain-tuned models or skip reranking when the pool is easy. |
+| Multi-format ingest | PDF, markdown, HTML, email chains, chat logs, legal/numbered documents. |
+| No API key required | Runs fully offline with sentence-transformers. |
+
+---
+
 ## Benchmarks
+
+All numbers are reproducible: run `benchmarks/squad_benchmark.py` or
+`benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`.
+No API key required for SQuAD or CUAD. Hybrid retrieval uses **reciprocal rank fusion (RRF)**
+by default; optional **cross-encoder reranking** is exposed on `RAGNavRetriever(reranker=...)`.
+
+### Retrieval accuracy
+
+| Dataset | Method | R@1 | R@3 | R@5 | MRR@10 |
+|---------|--------|-----|-----|-----|--------|
+| SQuAD | BM25-only | 0.852 | 0.932 | 0.950 | 0.896 |
+| SQuAD | Embedding-only | 0.772 | 0.906 | 0.942 | 0.844 |
+| SQuAD | **RAGNav hybrid (RRF 0.5/0.5)** | **0.864** | **0.956** | **0.978** | **0.912** |
+| SQuAD | Hybrid RRF + cross-encoder reranker | 0.862 | 0.944 | 0.968 | 0.906 |
+| CUAD | BM25-only | 0.010 | 0.044 | 0.047 | 0.030 |
+| CUAD | **RAGNav hybrid (legal ingest + RRF)** | **0.010** | **0.037** | **0.051** | **0.026** |
+| CUAD | **RAGNav + graph expansion** | **0.010** | **0.037** | **0.051** | **0.026** |
+
+*SQuAD: 500 questions, 447 unique passages, `rajpurkar/squad` validation set, CC BY-SA 4.0*
+
+*The previously published **0.968** SQuAD R@3 used weighted min–max fusion; the default hybrid path is now **RRF** (`fusion="rrf"` in `retrieve()`). Use `fusion="weighted"` to approximate the older fusion behavior.*
+
+*CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0*
+
+### vs. PageIndex
+
+| | PageIndex | RAGNav |
+|--|-----------|--------|
+| Requires GPT-4o / paid LLM | Yes | No — runs on any LLM or embedding-only |
+| Fully offline (no API key) | No | Yes |
+| SQuAD R@3 | Not published | **0.956** (hybrid RRF) |
+| CUAD R@3 | Not published | **0.044** (BM25 best on current CUAD harness) |
+| FinanceBench accuracy | 98.7% (GPT-4o) | TBD (Mistral) |
+| Handles markdown / chat / email | No | Yes |
+| Structure-aware graph expansion | No | Yes |
+
+*FinanceBench comparison in progress (later session).*
 
 ### One-command scorecard (offline)
 

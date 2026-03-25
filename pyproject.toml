@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragnav"
-version = "0.1.0"
+version = "0.3.0"
 description = "Hybrid structure-aware retrieval (BM25 + embeddings + structure graph expansion), Mistral-first."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -47,11 +47,29 @@ pdf = [
 messy = [
   "beautifulsoup4>=4.12.0",
 ]
+embeddings = [
+  "sentence-transformers>=3.0.0",
+]
+reranking = [
+  "sentence-transformers>=3.0.0",
+]
+all = [
+  "numpy>=1.26.0",
+  "rank-bm25>=0.2.2",
+  "pymupdf>=1.26.0",
+  "requests>=2.31.0",
+  "beautifulsoup4>=4.12.0",
+  "sentence-transformers>=3.0.0",
+]
 dev = [
   "black>=24.0.0",
   "ruff>=0.6.0",
   "build>=1.2.0",
   "twine>=5.0.0",
+  "pytest>=8.0.0",
+  "pytest-cov>=5.0.0",
+  "sentence-transformers>=3.0.0",
+  "datasets>=2.14.0",
 ]
 
 [project.scripts]
@@ -66,6 +84,9 @@ target-version = ["py39"]
 
 [tool.setuptools]
 include-package-data = true
+
+[tool.setuptools.package-data]
+ragnav = ["py.typed"]
 
 [tool.setuptools.packages.find]
 where = ["."]

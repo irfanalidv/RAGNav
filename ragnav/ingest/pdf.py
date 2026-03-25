@@ -5,6 +5,7 @@ from typing import Any, Optional
 
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
+from ..exceptions import RAGNavIngestError
 from ..papers import pdf_heuristics as paper
 
 
@@ -29,12 +30,12 @@ def ingest_pdf_bytes(
     - Extract text per page (PyMuPDF)
     - Create one block per page with anchors={"page": N}
 
-    This mirrors PageIndex's "page-aware" provenance, while staying general.
+    Each page becomes a block with ``anchors["page"]`` so retrieval can filter by page.
     """
     try:
         import fitz  # PyMuPDF
     except Exception as e:
-        raise RuntimeError("Missing optional dependency `pymupdf`. Install with: pip install -e \".[pdf]\"") from e
+        raise RAGNavIngestError("Missing optional dependency `pymupdf`. Install with: pip install -e \".[pdf]\"") from e
 
     opts = opts or PdfIngestOptions()
     if opts.paper_mode:
@@ -94,7 +95,7 @@ def ingest_pdf_bytes_paper(
     try:
         import fitz  # PyMuPDF
     except Exception as e:
-        raise RuntimeError("Missing optional dependency `pymupdf`. Install with: pip install -e \".[pdf]\"") from e
+        raise RAGNavIngestError("Missing optional dependency `pymupdf`. Install with: pip install -e \".[pdf]\"") from e
 
     opts = opts or PdfIngestOptions()
     doc_meta: dict[str, Any] = {"type": "pdf", "mode": "paper"}

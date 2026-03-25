@@ -5,7 +5,7 @@ from ragnav.env import load_env
 from ragnav.llm.mistral import MistralClient
 from ragnav.json_utils import extract_json
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.utils import print_wrapped
+from ragnav.display import print_wrapped
 
 
 DOC_1 = """

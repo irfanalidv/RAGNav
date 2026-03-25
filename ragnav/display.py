@@ -7,9 +7,7 @@ from .models import Block
 
 
 def print_wrapped(text: str, *, width: int = 90) -> None:
-    """
-    PageIndex cookbooks print long strings wrapped for readability.
-    """
+    """Print long strings wrapped to ``width`` for terminal readability."""
     if text is None:
         print("")
         return
@@ -21,10 +19,7 @@ def print_wrapped(text: str, *, width: int = 90) -> None:
 
 
 def create_node_mapping(blocks: list[Block]) -> dict[str, dict[str, Any]]:
-    """
-    Similar intent to PageIndex's `utils.create_node_mapping(tree)`.
-    Returns a map from block_id -> lightweight view useful for demos.
-    """
+    """Map each ``block_id`` to a small dict (title, anchors, text) for demos and debugging."""
     out: dict[str, dict[str, Any]] = {}
     for b in blocks:
         out[b.block_id] = {
@@ -38,10 +33,7 @@ def create_node_mapping(blocks: list[Block]) -> dict[str, dict[str, Any]]:
 
 
 def print_tree(blocks: list[Block], *, max_blocks: Optional[int] = 60) -> None:
-    """
-    Cookbook-friendly tree-ish view from heading paths.
-    (RAGNav stores blocks, not a nested tree object.)
-    """
+    """Print a tree-like view derived from each block's ``heading_path``."""
     shown = blocks if max_blocks is None else blocks[:max_blocks]
     for b in shown:
         indent = "  " * max(0, len(b.heading_path) - 1)

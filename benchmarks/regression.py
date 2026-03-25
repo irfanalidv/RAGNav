@@ -56,7 +56,7 @@ def test_retrieval_cache() -> None:
     idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=fake, build_vectors=False)
     r = RAGNavRetriever(index=idx, llm=fake)
 
-    kv = SqliteKV(SqliteCacheConfig(path="cache/regression.sqlite3"))
+    kv = SqliteKV(SqliteCacheConfig(db_path="cache/regression.sqlite3"))
     rcache = RetrievalCache(kv)
 
     q = "Needle"
@@ -69,7 +69,7 @@ def test_retrieval_cache() -> None:
 def test_embedding_cache() -> None:
     doc, blocks = ingest_markdown_string("# A\n\n## One\nNeedle\n", name="a.md")
     fake = FakeLLMClient()
-    kv = SqliteKV(SqliteCacheConfig(path="cache/regression.sqlite3"))
+    kv = SqliteKV(SqliteCacheConfig(db_path="cache/regression.sqlite3"))
     ecache = EmbeddingCache(kv)
     tr = Trace()
 

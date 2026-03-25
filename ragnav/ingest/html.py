@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from ..exceptions import RAGNavIngestError
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
 
@@ -34,7 +35,9 @@ def ingest_html_string_graph(
     try:
         from bs4 import BeautifulSoup
     except Exception as e:
-        raise RuntimeError("Missing optional dependency `beautifulsoup4`. Install with: pip install -e \".[messy]\"") from e
+        raise RAGNavIngestError(
+            "Missing optional dependency `beautifulsoup4`. Install with: pip install -e \".[messy]\""
+        ) from e
 
     opts = opts or HtmlIngestOptions()
     doc_meta: dict[str, Any] = {"type": "html"}

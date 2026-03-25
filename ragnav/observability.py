@@ -7,10 +7,7 @@ from typing import Any
 
 @dataclass
 class Trace:
-    """
-    Lightweight trace collector for retrieval/index builds.
-    Stores timings + arbitrary counters/metadata.
-    """
+    """Lightweight trace collector for retrieval/index builds."""
 
     timings_ms: dict[str, float] = field(default_factory=dict)
     counters: dict[str, int] = field(default_factory=dict)
@@ -27,6 +24,8 @@ class Trace:
 
 
 class _Span:
+    _t0: float = 0.0
+
     def __init__(self, trace: Trace, name: str):
         self._trace = trace
         self._name = name

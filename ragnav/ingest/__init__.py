@@ -11,6 +11,7 @@ from .pdf import (
 from .html import ingest_html_string_graph, HtmlIngestOptions
 from .email import ingest_eml_bytes_graph, EmailIngestOptions
 from .chat import ingest_slack_messages_graph, ChatIngestOptions
+from .legal import ingest_legal
 
 __all__ = [
     "ingest_markdown_string",
@@ -29,5 +30,6 @@ __all__ = [
     "EmailIngestOptions",
     "ingest_slack_messages_graph",
     "ChatIngestOptions",
+    "ingest_legal",
 ]
 

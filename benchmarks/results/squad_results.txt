@@ -1,0 +1,20 @@
+SQuAD retrieval benchmark — RAGNav
+Timestamp (UTC): 2026-03-25T20:04:45.143877+00:00
+ragnav version: 0.3.0
+n_questions (requested): 500
+seed: 42
+unique passages indexed: 447
+
+Method                           R@1    R@3    R@5   MRR@10
+───────────────────────────────────────────────────────────
+BM25-only                      0.852  0.932  0.950  0.896  n=500
+Embedding-only                 0.772  0.906  0.942  0.844  n=500
+Hybrid RAGNav (0.5/0.5)        0.864  0.956  0.978  0.912  n=500
+Hybrid RAGNav (0.3/0.7)        0.864  0.956  0.978  0.912  n=500
+Hybrid RRF + Reranker          0.862  0.944  0.968  0.906  n=500
+
+--- System ---
+Python: 3.12.1
+Platform: macOS-15.6.1-arm64-arm-64bit
+sentence-transformers: 5.1.0
+Embedding model: all-MiniLM-L6-v2

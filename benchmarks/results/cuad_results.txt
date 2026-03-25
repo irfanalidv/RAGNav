@@ -1,0 +1,22 @@
+CUAD retrieval benchmark — RAGNav
+Timestamp (UTC): 2026-03-25T19:47:07.686430+00:00
+ragnav version: 0.3.0
+n_questions (requested): 300
+n_questions (evaluated, with gold in index): 297
+seed: 42
+n_unique_contracts in index: 91
+
+Method                           R@1    R@3    R@5   MRR@10
+───────────────────────────────────────────────────────────
+BM25-only                      0.010  0.044  0.047  0.030  n=297
+Embedding-only                 0.007  0.010  0.020  0.015  n=297
+Hybrid (0.5/0.5)               0.010  0.037  0.051  0.026  n=297
+Hybrid + struct expansion      0.010  0.037  0.051  0.026  n=297
+Hybrid + graph expansion       0.010  0.037  0.051  0.026  n=297
+Hybrid RRF + Legal Ingest + Reranker 0.010  0.024  0.030  0.021  n=297
+
+--- System ---
+Python: 3.12.1
+Platform: macOS-15.6.1-arm64-arm-64bit
+sentence-transformers: 5.1.0
+Embedding model: all-MiniLM-L6-v2

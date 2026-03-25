@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 from ..llm.base import LLMClient
-from ..retrieval import RAGNavRetriever
 from ..cache.sqlite_cache import EmbeddingCache, RetrievalCache
 from .agentic import AgenticConfig, agentic_retrieve_then_answer
 from .hybrid import HybridRagConfig, hybrid_rag_pdf_url

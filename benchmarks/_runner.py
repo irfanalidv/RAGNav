@@ -1,0 +1,84 @@
+"""
+Shared retrieval evaluation harness.
+No ragnav imports — pure metrics so any retriever can be plugged in.
+"""
+
+from __future__ import annotations
+
+import statistics
+from dataclasses import dataclass
+
+
+@dataclass
+class RetrievalScore:
+    method: str
+    recall_at_1: float
+    recall_at_3: float
+    recall_at_5: float
+    mrr_at_10: float
+    n_queries: int
+
+    def row(self) -> str:
+        return (
+            f"{self.method:<30} "
+            f"{self.recall_at_1:.3f}  "
+            f"{self.recall_at_3:.3f}  "
+            f"{self.recall_at_5:.3f}  "
+            f"{self.mrr_at_10:.3f}  "
+            f"n={self.n_queries}"
+        )
+
+
+def recall_at_k(ranked_ids: list[str], gold_id: str, k: int) -> float:
+    return 1.0 if gold_id in ranked_ids[:k] else 0.0
+
+
+def mrr_at_k(ranked_ids: list[str], gold_id: str, k: int) -> float:
+    for i, rid in enumerate(ranked_ids[:k], 1):
+        if rid == gold_id:
+            return 1.0 / i
+    return 0.0
+
+
+def recall_at_k_any(ranked_ids: list[str], gold_ids: frozenset[str], k: int) -> float:
+    head = ranked_ids[:k]
+    return 1.0 if any(g in head for g in gold_ids) else 0.0
+
+
+def mrr_at_k_any(ranked_ids: list[str], gold_ids: frozenset[str], k: int) -> float:
+    for i, rid in enumerate(ranked_ids[:k], 1):
+        if rid in gold_ids:
+            return 1.0 / i
+    return 0.0
+
+
+def score_any_gold(method: str, results: list[tuple[list[str], frozenset[str]]]) -> RetrievalScore:
+    """
+    results: list of (ranked_block_ids, gold_block_ids)
+    A query counts as correct if any gold id appears in the ranked list (set semantics).
+    """
+    r1 = statistics.mean(recall_at_k_any(r, g, 1) for r, g in results)
+    r3 = statistics.mean(recall_at_k_any(r, g, 3) for r, g in results)
+    r5 = statistics.mean(recall_at_k_any(r, g, 5) for r, g in results)
+    mrr = statistics.mean(mrr_at_k_any(r, g, 10) for r, g in results)
+    return RetrievalScore(method, r1, r3, r5, mrr, len(results))
+
+
+def score(method: str, results: list[tuple[list[str], str]]) -> RetrievalScore:
+    """
+    results: list of (ranked_block_ids, gold_block_id)
+    gold_block_id is the id of the block that contains the answer.
+    """
+    r1 = statistics.mean(recall_at_k(r, g, 1) for r, g in results)
+    r3 = statistics.mean(recall_at_k(r, g, 3) for r, g in results)
+    r5 = statistics.mean(recall_at_k(r, g, 5) for r, g in results)
+    mrr = statistics.mean(mrr_at_k(r, g, 10) for r, g in results)
+    return RetrievalScore(method, r1, r3, r5, mrr, len(results))
+
+
+def print_table(scores: list[RetrievalScore]) -> None:
+    header = f"{'Method':<30} {'R@1':>5}  {'R@3':>5}  {'R@5':>5}  {'MRR@10':>7}"
+    print(header)
+    print("─" * len(header))
+    for s in scores:
+        print(s.row())

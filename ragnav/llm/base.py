@@ -6,6 +6,9 @@ from typing import Iterable, Optional, Protocol
 class LLMClient(Protocol):
     """
     Provider-agnostic interface used by RAGNav.
+
+    Concrete clients (e.g. ``MistralClient``, ``FakeLLMClient``) may expose an optional
+    ``cost_tracker`` attribute; ``RAGNavRetriever`` assigns it when you pass ``cost_tracker=...``.
     """
 
     def chat(

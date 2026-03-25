@@ -7,7 +7,7 @@ from ragnav.graphrag import EntityGraphRetriever, EntityGraphRetrieverConfig, bu
 from ragnav.ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
 from ragnav.llm.mistral import MistralClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.utils import print_wrapped
+from ragnav.display import print_wrapped
 
 
 PDF_URL = "https://arxiv.org/pdf/2507.13334.pdf"
