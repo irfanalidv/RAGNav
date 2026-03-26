@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/pypi/l/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI downloads](https://img.shields.io/pypi/dm/ragnav.svg)](https://pypi.org/project/ragnav/)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)
 
 **Production-grade hybrid retrieval — no API key required.**
 
@@ -172,6 +173,7 @@ ragnav paper-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What 
 ### Jupyter notebook quickstart
 
 Open:
+- **`cookbook/ragnav_quickstart.ipynb`** — offline SQuAD demo + confidence + QueryFallback ([run in Colab](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb))
 - `cookbook/ragnav_paper_quickstart.ipynb`
 
 Other modes (optional):
