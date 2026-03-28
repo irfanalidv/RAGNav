@@ -73,18 +73,42 @@ rm -rf dist/ build/
 python -m build
 twine check dist/*
 
-# 7. TestPyPI
-twine upload --repository testpypi dist/*
-pip install --index-url https://test.pypi.org/simple/ ragnav==0.3.0
+# 7. TestPyPI (optional — separate account at test.pypi.org)
+# Put TWINE_USERNAME=__token__ and TWINE_PASSWORD=pypi-... in local .env (gitignored).
+# Prefer bash `source` over `export $(grep ... | xargs)` — xargs breaks on quotes/spaces in values.
+set -a && [ -f .env ] && . ./.env && set +a
+twine upload --repository testpypi dist/* --non-interactive
+# If env load fails, pass credentials explicitly (still from your shell, not committed):
+# twine upload --repository testpypi dist/* --username "$TWINE_USERNAME" --password "$TWINE_PASSWORD"
+# Install test (TestPyPI has no deps mirror; add PyPI as extra index if needed):
+pip install --index-url https://test.pypi.org/simple/ \
+  --extra-index-url https://pypi.org/simple/ \
+  "ragnav[embeddings]==0.3.0"
 python -c "import ragnav; print(ragnav.__version__)"
 
-# 8. Publish
-twine upload dist/*
-git tag -a v0.3.0 -m "v0.3.0: confidence, cost tracking, fallback, reranker"
+# 8. Publish (production PyPI — token from pypi.org, not TestPyPI)
+set -a && [ -f .env ] && . ./.env && set +a
+twine upload dist/* --non-interactive
+
+# 9. Verify install from real PyPI (fresh venv recommended)
+pip install ragnav[embeddings]
+python -c "
+from ragnav import RAGNavIndex, RAGNavRetriever
+from ragnav.ingest.markdown import ingest_markdown_string
+doc, blocks = ingest_markdown_string('Paris is the capital of France.', name='demo.md')
+index = RAGNavIndex.build(documents=[doc], blocks=blocks, use_sentence_transformers=True, vector_model='all-MiniLM-L6-v2', embed_batch_size=32)
+retriever = RAGNavRetriever(index=index)
+result = retriever.retrieve('What is the capital of France?', top_k=3, expand_structure=False, expand_graph=False)
+print(result.blocks[0].text)
+print(result.confidence)
+"
+
+# 10. Tag
+git tag -a v0.3.0 -m "v0.3.0: hybrid retrieval, confidence scoring, cost tracking, query fallback, legal ingest"
 git push origin main --tags
 ```
 
-Adjust the version in step 7–8 when releasing a new version.
+Adjust versions in steps 7–10 when releasing a new version. **Mistral** keys (`MISTRAL_API_KEY`) are unrelated to **PyPI** upload credentials.
 
 ## Pull requests
 
