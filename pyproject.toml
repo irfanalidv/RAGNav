@@ -64,6 +64,7 @@ all = [
   "datasets>=2.14.0",
 ]
 dev = [
+  "pillow>=10.0.0",
   "black>=24.0.0",
   "ruff>=0.6.0",
   "build>=1.2.0",
