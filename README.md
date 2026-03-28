@@ -20,8 +20,6 @@ Frontier-LLM “build an index per document” stacks optimize a different cost 
 pip install "ragnav[embeddings]>=0.3.0"
 ```
 
-*If PyPI does not yet offer 0.3.0+, install from a checkout: `pip install ".[embeddings]"` (repo root).*
-
 ```python
 from ragnav import RAGNavIndex, RAGNavRetriever
 from ragnav.ingest.markdown import ingest_markdown_string
