@@ -17,7 +17,7 @@
 Frontier-LLM “build an index per document” stacks optimize a different cost and reproducibility tradeoff; RAGNav targets **pip-install hybrid search** with **offline, reproducible** benchmarks.
 
 ```bash
-pip install "ragnav[embeddings]>=0.3.0"
+pip install ragnav[embeddings]
 ```
 
 ```python
@@ -133,7 +133,7 @@ RAGNav is **not affiliated** with the vendors above. If you notice missing or in
 From [PyPI](https://pypi.org/project/ragnav/) (recommended):
 
 ```bash
-pip install "ragnav[embeddings]>=0.3.0"
+pip install ragnav[embeddings]
 ```
 
 Optional extras: `ragnav[pdf]`, `ragnav[messy]` (HTML), `ragnav[reranking]`, `ragnav[mistral]`, `ragnav[all]` (see `pyproject.toml`; `mistral` is omitted from `all`).
@@ -298,7 +298,7 @@ Features PageIndex does not have:
 
 ## Benchmarks
 
-Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install "ragnav[embeddings]>=0.3.0" datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
+Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
 
 ### Retrieval accuracy
 
