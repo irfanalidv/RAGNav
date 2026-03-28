@@ -49,15 +49,21 @@ class RAGNavIndex:
         use_sentence_transformers: bool = True,
     ) -> "RAGNavIndex":
         if llm is None:
-            try:
-                from ..llm.mistral import MistralClient  # optional dependency
+            if use_sentence_transformers and build_vectors:
+                from ..llm.fake import FakeLLMClient
 
-                llm = MistralClient()
-            except Exception as e:
-                raise RAGNavLLMError(
-                    "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient for offline), "
-                    "or install Mistral support with: pip install -e \".[mistral]\""
-                ) from e
+                llm = FakeLLMClient()
+            else:
+                try:
+                    from ..llm.mistral import MistralClient  # optional dependency
+
+                    llm = MistralClient()
+                except Exception as e:
+                    raise RAGNavLLMError(
+                        "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient), "
+                        "or use use_sentence_transformers=True with build_vectors=True for local embeddings, "
+                        "or install Mistral support with: pip install ragnav[mistral]"
+                    ) from e
 
         docs_map = {d.doc_id: d for d in documents}
         blocks_by_id = {b.block_id: b for b in blocks}

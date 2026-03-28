@@ -19,8 +19,8 @@ from PIL import Image, ImageDraw, ImageFont
 REPO_ROOT = Path(__file__).resolve().parents[1]
 OUT_PATH = REPO_ROOT / "assets" / "ragnav-architecture.png"
 
-# ── Canvas ──────────────────────────────────────────────────────────────────
-W, H = 3200, 1340
+# ── Canvas (height fits content; avoids empty space below dashed boxes) ─────
+W, H = 3200, 1080
 
 # ── Palette (pure monochrome) ────────────────────────────────────────────────
 BLACK = "#0D0D0D"
@@ -78,6 +78,7 @@ F_STEP = font(28, bold=True)
 F_HEAD = font(30, bold=True)
 F_BODY = font(24)
 F_SMALL = font(20)
+F_STEP_MARK = font(22, bold=True)
 
 
 def text_center(draw, text, cx, cy, fnt, color=BLACK, anchor="mm"):
@@ -157,17 +158,24 @@ def main() -> None:
         x1, w = cols[i]
         return x1 + w // 2
 
-    step_labels = ["①", "②", "③", "④", "⑤", "↺", "⑥", "⑦"]
+    # "R" = optional rerank between ⑤ and ⑥ (avoids reading ↺ as a second "five")
+    step_labels = ["①", "②", "③", "④", "⑤", "R", "⑥", "⑦"]
     step_shown = [True, True, True, True, True, True, True, True]
 
-    NUM_R = 22
+    NUM_R = 20
+    step_circle_y = {
+        4: TOP - 50,
+        5: TOP - 26,
+        6: TOP - 50,
+    }
     for i, (label, show) in enumerate(zip(step_labels, step_shown)):
         if not show:
             continue
         cx = col_cx(i)
-        cy = TOP - 38
+        cy = step_circle_y.get(i, TOP - 38)
         circle(d, cx, cy, NUM_R, fill=DARK)
-        text_center(d, label, cx, cy, F_SMALL, WHITE)
+        fmark = F_STEP_MARK if label == "R" else F_SMALL
+        text_center(d, label, cx, cy, fmark, WHITE)
 
     # ── Box 0: Input ────────────────────────────────────────────────────────
     x1, y1, x2, y2 = col_box(0)
@@ -280,12 +288,6 @@ def main() -> None:
         else:
             ty += 20
 
-    divider(d, x1 + 16, x2 - 16, ty + 4, GREY50)
-    ty += 24
-    text_center(d, "fusion: RRF (default)", cx, ty, F_SMALL, "#C8C8C8")
-    ty += 28
-    text_center(d, "| weighted", cx, ty, F_SMALL, "#C8C8C8")
-
     # ── Box 4: Retrieve ───────────────────────────────────────────────────
     x1, y1, x2, y2 = col_box(4)
     rect(d, x1, y1, x2, y2, MID, BORDER)
@@ -300,6 +302,9 @@ def main() -> None:
         "",
         "Expand coherence",
         "(parent + next)",
+        "",
+        "fusion: RRF (default)",
+        "| weighted",
         "",
         "bm25_weight",
         "vector_weight",
@@ -399,30 +404,30 @@ def main() -> None:
         mid_y = TOP + MH // 2
         arrow(d, x1_end + 6, mid_y, x2_start - 6, mid_y, DARK, 3)
 
-    # ── Bottom section ──────────────────────────────────────────────────────
-    BOTY = BOT + 48
-    BOT2 = H - 56
+    # ── Bottom section (tight dashed frames) ─────────────────────────────
+    BOTY = BOT + 36
+    DASH_BOT = BOTY + 92
+    foot_y = DASH_BOT + 36
 
     gx1, gx2 = 120, 1900
-    dashed_rect(d, gx1, BOTY, gx2, BOT2 - 40, DASH, 2)
-    gcy = (BOTY + BOT2 - 40) // 2
-    text_center(d, "GraphRAG  (optional)", (gx1 + gx2) // 2, gcy - 30, F_HEAD, DARK)
+    dashed_rect(d, gx1, BOTY, gx2, DASH_BOT, DASH, 2)
+    gcy = (BOTY + DASH_BOT) // 2
+    text_center(d, "GraphRAG  (optional)", (gx1 + gx2) // 2, gcy - 22, F_HEAD, DARK)
     text_center(
         d,
         "extract entities / relations  →  build entity graph  →  multi-hop retrieve  (provenance)",
         (gx1 + gx2) // 2,
-        gcy + 12,
+        gcy + 14,
         F_BODY,
         GREY50,
     )
 
     qx1, qx2 = 1940, 3080
-    dashed_rect(d, qx1, BOTY, qx2, BOT2 - 40, DASH, 2)
-    qcy = (BOTY + BOT2 - 40) // 2
-    text_center(d, "QueryFallback  (optional)", (qx1 + qx2) // 2, qcy - 44, F_HEAD, DARK)
-    text_center(d, "LOW / MEDIUM confidence", (qx1 + qx2) // 2, qcy - 4, F_BODY, GREY50)
-    text_center(d, "→  LLM query variations", (qx1 + qx2) // 2, qcy + 30, F_BODY, GREY50)
-    text_center(d, "→  best result returned", (qx1 + qx2) // 2, qcy + 62, F_BODY, GREY50)
+    dashed_rect(d, qx1, BOTY, qx2, DASH_BOT, DASH, 2)
+    qcy = (BOTY + DASH_BOT) // 2
+    text_center(d, "QueryFallback  (optional)", (qx1 + qx2) // 2, qcy - 36, F_HEAD, DARK)
+    text_center(d, "LOW / MEDIUM confidence", (qx1 + qx2) // 2, qcy - 2, F_BODY, GREY50)
+    text_center(d, "→  LLM query variations  →  best result", (qx1 + qx2) // 2, qcy + 28, F_BODY, GREY50)
 
     ret_x = cols[4][0] + cols[4][1] // 2
     qcx = (qx1 + qx2) // 2
@@ -431,7 +436,6 @@ def main() -> None:
     arrow(d, ret_x, BOT + 32, ret_x, BOT + 6, DASH, 2)
     text_center(d, "retry", ret_x + 36, BOT + 24, F_SMALL, DASH)
 
-    foot_y = H - 44
     text_center(
         d,
         "Offline benchmarks: squad_benchmark  ·  cuad_benchmark  ·  scorecard  ·  paper_eval  ·  security_eval",

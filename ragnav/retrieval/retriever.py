@@ -36,15 +36,24 @@ class RAGNavRetriever:
 
     def __post_init__(self):
         if self.llm is None:
-            try:
-                from ..llm.mistral import MistralClient  # optional dependency
+            from ..llm.fake import FakeLLMClient
 
-                self.llm = MistralClient()
-            except Exception as e:
-                raise RAGNavLLMError(
-                    "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient for offline), "
-                    "or install Mistral support with: pip install -e \".[mistral]\""
-                ) from e
+            v = self.index.vectors
+            offline_ok = (
+                v is not None and v.uses_sentence_transformers
+            ) or not self.index.has_vectors
+            if offline_ok:
+                self.llm = FakeLLMClient()
+            else:
+                try:
+                    from ..llm.mistral import MistralClient  # optional dependency
+
+                    self.llm = MistralClient()
+                except Exception as e:
+                    raise RAGNavLLMError(
+                        "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient for offline), "
+                        "or install Mistral support with: pip install ragnav[mistral]"
+                    ) from e
         if self.cost_tracker is not None and self.llm is not None:
             if getattr(self.llm, "cost_tracker", None) is None:
                 self.llm.cost_tracker = self.cost_tracker

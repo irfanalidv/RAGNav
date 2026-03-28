@@ -7,12 +7,14 @@
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/ragnav?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/ragnav)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)
 
-**Production-grade hybrid retrieval — no API key required.**
+**Production-grade hybrid retrieval** — BM25 plus dense embeddings plus optional structure-aware expansion. With **sentence-transformers** (default), you can index and query **without any API key** or separate LLM client for the common path below.
 
-RAGNav combines BM25, sentence-transformer embeddings, and document-structure graph expansion in one library that runs **entirely offline** with open models.
+| Result | Detail |
+|--------|--------|
+| **SQuAD R@3** | **0.956** (500 questions, hybrid RRF, zero paid API calls) |
+| **CUAD span S@3** | **0.071** (clause-friendly metric; see benchmarks) |
 
-**SQuAD R@3: 0.956** on 500 questions, zero API calls.  
-PageIndex (the closest alternative) requires GPT-4o for its tree workflow and does not publish SQuAD numbers.
+Frontier-LLM “build an index per document” stacks optimize a different cost and reproducibility tradeoff; RAGNav targets **pip-install hybrid search** with **offline, reproducible** benchmarks.
 
 ```bash
 pip install ragnav[embeddings]
@@ -21,33 +23,36 @@ pip install ragnav[embeddings]
 ```python
 from ragnav import RAGNavIndex, RAGNavRetriever
 from ragnav.ingest.markdown import ingest_markdown_string
-from ragnav.llm.fake import FakeLLMClient
 
-md = "# Demo\n\nParis is the capital of France."
-doc, blocks = ingest_markdown_string(md, name="demo.md")
-llm = FakeLLMClient()
+doc, blocks = ingest_markdown_string(
+    "# Demo\n\nParis is the capital of France.",
+    name="demo.md",
+)
 index = RAGNavIndex.build(
     documents=[doc],
     blocks=blocks,
-    llm=llm,
     use_sentence_transformers=True,
     vector_model="all-MiniLM-L6-v2",
     embed_batch_size=32,
 )
-retriever = RAGNavRetriever(index=index, llm=llm)
+retriever = RAGNavRetriever(index=index)
 result = retriever.retrieve(
     "What is the capital of France?",
     top_k=5,
     expand_structure=False,
     expand_graph=False,
 )
-print(result.blocks[0].text)  # Paris is the capital of France.
-print(result.confidence)  # ConfidenceLevel.HIGH (heuristic; see models.ConfidenceLevel)
+print(result.blocks[0].text)
+print(result.confidence)
 ```
 
 ![RAGNav architecture](https://raw.githubusercontent.com/irfanalidv/RAGNav/main/assets/ragnav-architecture.png)
 
-For **long PDFs and papers**, RAGNav is also **navigation-first**: route pages/sections, then retrieve evidence with provenance — not only “embed query → retrieve chunks”.
+Regenerate this figure: `python3 scripts/gen_architecture.py` (needs Pillow, e.g. `pip install ragnav[dev]`).
+
+### Long PDFs and paper mode
+
+For **papers and long PDFs**, use **navigation-first** routing (pages → evidence → optional `link_to` refs). That workflow is **not** required for the markdown snippet above; see [Quickstart (Python): papers](#quickstart-python-papers-recommended) and the CLI section below.
 
 ## The problem (why long-document QA fails)
 
@@ -91,8 +96,7 @@ Edge {
 }
 ```
 
-This is the practical equivalent of PageIndex’s “in-context index”, but optimized for **papers**:
-pages + headings + cross-references + provenance.
+This graph is the in-process “index” the retriever navigates: pages, headings, cross-references, and provenance.
 
 ## Vector RAG vs RAGNav (paper-mode)
 
@@ -114,35 +118,33 @@ pages + headings + cross-references + provenance.
 
 ## Acknowledgements & prior art
 
-RAGNav is an independent project, but it stands on strong prior work:
+RAGNav is an independent project. It builds on long-standing **information retrieval** practice (lexical BM25, hybrid fusion with dense retrieval) and open embedding models — *document structure as a first-class signal* has roots in IR, digital libraries, and structured PDF tooling, not a single product.
 
-- **PageIndex**: RAGNav builds on the core insight popularized by **PageIndex** — *document structure is a first-class retrieval signal* ([repo](https://github.com/VectifyAI/PageIndex), [article](https://pageindex.ai/blog/pageindex-intro)).
 - **PyMuPDF**: PDF text extraction is powered by `pymupdf` (optional dependency).
-- **BM25 / classic IR**: Lexical retrieval uses BM25-style scoring (a long-established baseline).
-- **Mistral**: The reference LLM/embedding client targets Mistral (optional dependency).
+- **BM25 / classic IR**: Lexical retrieval uses BM25-style scoring.
+- **Mistral**: Optional LLM/embedding client for chat, routing, and API-backed embed fallback.
 
-RAGNav is **not affiliated with** these projects/organizations. If you notice missing or incorrect attribution, please open an issue.
+RAGNav is **not affiliated** with the vendors above. If you notice missing or incorrect attribution, please open an issue.
 
 ---
 
 ## Install
 
-Create a virtualenv, then install RAGNav:
+From [PyPI](https://pypi.org/project/ragnav/) (recommended):
 
 ```bash
-pip install -e .
+pip install ragnav[embeddings]
 ```
 
-To enable **PDF ingestion**:
+Optional extras: `ragnav[pdf]`, `ragnav[messy]` (HTML), `ragnav[reranking]`, `ragnav[mistral]`, `ragnav[all]` (see `pyproject.toml`; `mistral` is omitted from `all`).
+
+### Development (clone)
 
 ```bash
-pip install -e ".[pdf]"
-```
-
-To enable **Mistral-backed** chat + embeddings:
-
-```bash
-pip install -e ".[mistral]"
+git clone https://github.com/irfanalidv/RAGNav.git
+cd RAGNav
+pip install -e ".[dev,pdf,messy]"
+# optional: pip install -e ".[mistral]"
 ```
 
 ## Setup (Mistral)
@@ -160,7 +162,7 @@ export MISTRAL_API_KEY="your_key_here"
 Install:
 
 ```bash
-pip install -e ".[mistral,pdf]"
+pip install "ragnav[mistral,pdf]"
 export MISTRAL_API_KEY="..."
 ```
 
@@ -272,7 +274,7 @@ for b in out["blocks"][:3]:
 Networked PDF demo:
 
 ```bash
-pip install -e ".[mistral,pdf]"
+pip install "ragnav[mistral,pdf]"
 export MISTRAL_API_KEY="..."
 python3 examples/graphs/ragnav_entity_graphrag_pdf.py
 ```
@@ -296,10 +298,7 @@ Features PageIndex does not have:
 
 ## Benchmarks
 
-All numbers are reproducible: run `benchmarks/squad_benchmark.py` or
-`benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`.
-No API key required for SQuAD or CUAD. Hybrid retrieval uses **reciprocal rank fusion (RRF)**
-by default; optional **cross-encoder reranking** is exposed on `RAGNavRetriever(reranker=...)`.
+Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
 
 ### Retrieval accuracy
 
@@ -329,19 +328,18 @@ Gold answer span may sit across legal-ingest block boundaries; **span S@k** is t
 
 *CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0. Block-level R@k requires a gold block_id in the top-k list; span S@k only requires the gold answer text to appear in the merged text of those blocks.*
 
-### vs. PageIndex
+### vs. PageIndex (illustrative)
 
 | | PageIndex | RAGNav |
 |--|-----------|--------|
-| Requires GPT-4o / paid LLM | Yes | No — runs on any LLM or embedding-only |
+| Requires GPT-4o / paid LLM for core tree workflow | Yes | No — hybrid retrieval with local embeddings by default |
 | Fully offline (no API key) | No | Yes |
 | SQuAD R@3 | Not published | **0.956** (hybrid RRF) |
-| CUAD clause retrieval (span S@3) | Not published | **0.071** (hybrid RRF + legal ingest; see benchmark file for block-level R@3) |
-| FinanceBench accuracy | 98.7% (GPT-4o) | TBD (Mistral) |
+| CUAD clause retrieval (span S@3) | Not published | **0.071** (hybrid RRF + legal ingest; block-level R@3 in results file) |
 | Handles markdown / chat / email | No | Yes |
 | Structure-aware graph expansion | No | Yes |
 
-*FinanceBench comparison in progress (later session).*
+**FinanceBench:** Often cited with a **frontier LLM** and a finance-PDF setup. RAGNav does not ship that harness: it would imply **paid API** runs and a different evaluation contract than the offline SQuAD/CUAD suites above. Treat FinanceBench as **out of scope** for this repo until a reproducible, keyless or clearly documented protocol is added.
 
 ### One-command scorecard (offline)
 

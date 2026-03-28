@@ -1,5 +1,14 @@
 # Contributing to RAGNav
 
+## Architecture diagram
+
+Regenerate `assets/ragnav-architecture.png` after editing `scripts/gen_architecture.py`:
+
+```bash
+pip install pillow
+python3 scripts/gen_architecture.py
+```
+
 ## Development setup
 
 Clone the repository and install the package in editable mode with optional extras:
