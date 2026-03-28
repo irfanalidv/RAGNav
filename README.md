@@ -296,6 +296,44 @@ Features PageIndex does not have:
 
 ---
 
+## Use any LLM
+
+RAGNav works with any LLM. Built-in: **Mistral**. For others, one small wrapper:
+
+```python
+from openai import OpenAI
+
+from ragnav.llm.base import LLMClient
+from ragnav.llm.mistral import MistralClient
+
+# Mistral (built-in) — MISTRAL_API_KEY
+llm = MistralClient()
+
+# OpenAI — pip install openai — OPENAI_API_KEY
+class OpenAIClient(LLMClient):
+    def __init__(self):
+        self.client = OpenAI()
+
+    def chat(self, *, messages, model=None, temperature=0.0):
+        r = self.client.chat.completions.create(
+            model=model or "gpt-4o-mini",
+            messages=messages,
+            temperature=temperature,
+        )
+        return r.choices[0].message.content or ""
+
+    def embed(self, *, inputs, model=None):
+        r = self.client.embeddings.create(
+            model=model or "text-embedding-3-small",
+            input=list(inputs),
+        )
+        return [d.embedding for d in r.data]
+
+# Pass either client to RAGNavRetriever(..., llm=...), PaperRAG(..., llm=...), QueryFallback(..., llm=...).
+```
+
+Anthropic, Groq, Ollama — same pattern (~10 lines each).
+
 ## Benchmarks
 
 Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
@@ -324,8 +362,6 @@ Gold answer span may sit across legal-ingest block boundaries; **span S@k** is t
 
 *SQuAD: 500 questions, 447 unique passages, `rajpurkar/squad` validation set, CC BY-SA 4.0*
 
-*The previously published **0.968** SQuAD R@3 used weighted min–max fusion; the default hybrid path is now **RRF** (`fusion="rrf"` in `retrieve()`). Use `fusion="weighted"` to approximate the older fusion behavior.*
-
 *CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0. Block-level R@k requires a gold block_id in the top-k list; span S@k only requires the gold answer text to appear in the merged text of those blocks.*
 
 ### vs. PageIndex (illustrative)
@@ -347,7 +383,7 @@ Gold answer span may sit across legal-ingest block boundaries; **span S@k** is t
 python3 -m benchmarks.scorecard
 ```
 
-Example output (real):
+Example output:
 
 ```json
 {
@@ -360,13 +396,3 @@ Example output (real):
   ]
 }
 ```
-
----
-
-## Repo layout
-
-- `ragnav/`: the Python package (hybrid retrieval engine)
-- `benchmarks/`: accuracy + latency/cost harness (PageIndex-style baseline + RAGNav hybrid)
-- `examples/`: runnable end-to-end demos — see **[examples/README.md](examples/README.md)** for entrypoints (multidoc, agentic, papers, graphs).
-
-Local PDF evaluation with a optional `data/papers/manifest.json` lives in `benchmarks.paper_pdf_suite`; details belong in the wiki or benchmark docs, not here.
