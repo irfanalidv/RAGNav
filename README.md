@@ -46,7 +46,7 @@ print(result.blocks[0].text)
 print(result.confidence)
 ```
 
-![RAGNav architecture](https://raw.githubusercontent.com/irfanalidv/RAGNav/main/assets/ragnav-architecture.png)
+![RAGNav architecture](https://raw.githubusercontent.com/irfanalidv/RAGNav/main/assets/ragnav-architecture.png?v=4)
 
 Regenerate this figure: `python3 scripts/gen_architecture.py` (needs Pillow, e.g. `pip install ragnav[dev]`).
 

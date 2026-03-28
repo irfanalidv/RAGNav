@@ -9,6 +9,8 @@ pip install pillow
 python3 scripts/gen_architecture.py
 ```
 
+If GitHub still shows a stale image in the README, bump the `?v=` query on the architecture `raw.githubusercontent.com` URL in `README.md` (CDN cache).
+
 ## Development setup
 
 Clone the repository and install the package in editable mode with optional extras:
