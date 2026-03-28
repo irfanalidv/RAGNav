@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![License: MIT](https://img.shields.io/pypi/l/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![PyPI downloads](https://img.shields.io/pypi/dm/ragnav.svg)](https://pypi.org/project/ragnav/)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/ragnav?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/ragnav)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)
 
 **Production-grade hybrid retrieval — no API key required.**
