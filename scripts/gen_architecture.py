@@ -78,7 +78,8 @@ F_STEP = font(28, bold=True)
 F_HEAD = font(30, bold=True)
 F_BODY = font(24)
 F_SMALL = font(20)
-F_STEP_MARK = font(22, bold=True)
+# ASCII digits + "R" in circles — avoids ①②③ missing from Arial/default bitmap fonts on some hosts
+F_CIRCLE_MARK = font(24, bold=True)
 
 
 def text_center(draw, text, cx, cy, fnt, color=BLACK, anchor="mm"):
@@ -158,8 +159,8 @@ def main() -> None:
         x1, w = cols[i]
         return x1 + w // 2
 
-    # "R" = optional rerank between ⑤ and ⑥ (avoids reading ↺ as a second "five")
-    step_labels = ["①", "②", "③", "④", "⑤", "R", "⑥", "⑦"]
+    # 1–7 with "R" for optional rerank (all same font — no Unicode circled digits)
+    step_labels = ["1", "2", "3", "4", "5", "R", "6", "7"]
     step_shown = [True, True, True, True, True, True, True, True]
 
     NUM_R = 20
@@ -174,8 +175,7 @@ def main() -> None:
         cx = col_cx(i)
         cy = step_circle_y.get(i, TOP - 38)
         circle(d, cx, cy, NUM_R, fill=DARK)
-        fmark = F_STEP_MARK if label == "R" else F_SMALL
-        text_center(d, label, cx, cy, fmark, WHITE)
+        text_center(d, label, cx, cy, F_CIRCLE_MARK, WHITE)
 
     # ── Box 0: Input ────────────────────────────────────────────────────────
     x1, y1, x2, y2 = col_box(0)

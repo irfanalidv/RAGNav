@@ -14,3 +14,13 @@ Run any example from the repo root, for example:
 python3 examples/basic/ragnav_rag_simple.py
 ```
 
+### Script index
+
+- `examples/multidoc/ragnav_doc_search_semantics.py` (set `MISTRAL_API_KEY` if using Mistral)
+- `examples/multidoc/ragnav_doc_search_description.py`
+- `examples/multidoc/ragnav_doc_search_metadata.py`
+- `examples/agentic/ragnav_agentic_retrieval.py`
+- `examples/agentic/ragnav_agentic_retrieval_pdf.py`
+- `examples/papers/ragnav_vectorless_rag_pdf.py`
+- `examples/graphs/ragnav_chat_graph_retrieval.py`
+

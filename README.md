@@ -17,15 +17,17 @@
 Frontier-LLM “build an index per document” stacks optimize a different cost and reproducibility tradeoff; RAGNav targets **pip-install hybrid search** with **offline, reproducible** benchmarks.
 
 ```bash
-pip install ragnav[embeddings]
+pip install "ragnav[embeddings]>=0.3.0"
 ```
+
+*If PyPI does not yet offer 0.3.0+, install from a checkout: `pip install ".[embeddings]"` (repo root).*
 
 ```python
 from ragnav import RAGNavIndex, RAGNavRetriever
 from ragnav.ingest.markdown import ingest_markdown_string
 
 doc, blocks = ingest_markdown_string(
-    "# Demo\n\nParis is the capital of France.",
+    "Paris is the capital of France.",
     name="demo.md",
 )
 index = RAGNavIndex.build(
@@ -133,7 +135,7 @@ RAGNav is **not affiliated** with the vendors above. If you notice missing or in
 From [PyPI](https://pypi.org/project/ragnav/) (recommended):
 
 ```bash
-pip install ragnav[embeddings]
+pip install "ragnav[embeddings]>=0.3.0"
 ```
 
 Optional extras: `ragnav[pdf]`, `ragnav[messy]` (HTML), `ragnav[reranking]`, `ragnav[mistral]`, `ragnav[all]` (see `pyproject.toml`; `mistral` is omitted from `all`).
@@ -298,7 +300,7 @@ Features PageIndex does not have:
 
 ## Benchmarks
 
-Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
+Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install "ragnav[embeddings]>=0.3.0" datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
 
 ### Retrieval accuracy
 
@@ -363,60 +365,10 @@ Example output (real):
 
 ---
 
-## Local PDFs + golden manifest (optional)
-
-If you add local PDFs under `data/papers/`, you can run a suite against **your own papers**:
-
-```bash
-mkdir -p data/papers
-# copy some PDFs into data/papers/
-python3 -m benchmarks.paper_pdf_suite
-```
-
-Optional: add `data/papers/manifest.json` to define *expected outcomes* per PDF (queries + expected pages/substrings).
-
-Example manifest:
-
-```json
-{
-  "papers": [
-    {
-      "file": "my_paper.pdf",
-      "cases": [
-        {
-          "case_id": "datasets",
-          "query": "Which datasets are mentioned?",
-          "expected_pages": [2, 3],
-          "expected_text_substrings": ["SQuAD", "GLUE"],
-          "tags": ["datasets"]
-        }
-      ]
-    }
-  ]
-}
-```
-
----
-
 ## Repo layout
 
 - `ragnav/`: the Python package (hybrid retrieval engine)
 - `benchmarks/`: accuracy + latency/cost harness (PageIndex-style baseline + RAGNav hybrid)
-- `examples/`: runnable end-to-end demos
+- `examples/`: runnable end-to-end demos — see **[examples/README.md](examples/README.md)** for entrypoints (multidoc, agentic, papers, graphs).
 
----
-
-## More examples
-
-```bash
-export MISTRAL_API_KEY="..."
-python3 examples/multidoc/ragnav_doc_search_semantics.py
-```
-
-Other entrypoints:
-- `examples/multidoc/ragnav_doc_search_description.py`
-- `examples/multidoc/ragnav_doc_search_metadata.py`
-- `examples/agentic/ragnav_agentic_retrieval.py`
-- `examples/agentic/ragnav_agentic_retrieval_pdf.py`
-- `examples/papers/ragnav_vectorless_rag_pdf.py`
-- `examples/graphs/ragnav_chat_graph_retrieval.py`
+Local PDF evaluation with a optional `data/papers/manifest.json` lives in `benchmarks.paper_pdf_suite`; details belong in the wiki or benchmark docs, not here.
