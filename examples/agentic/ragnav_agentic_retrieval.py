@@ -90,8 +90,7 @@ If you need supporting evidence, retrieve.
                 {
                     "role": "user",
                     "content": (
-                        "Tool result (ragnav_retrieve_raw):\n"
-                        f"{json.dumps(hits, indent=2)[:12000]}"
+                        f"Tool result (ragnav_retrieve_raw):\n{json.dumps(hits, indent=2)[:12000]}"
                     ),
                 }
             )

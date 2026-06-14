@@ -68,7 +68,7 @@ def ingest_pdf_bytes(
             continue
         blocks.append(
             Block(
-                block_id=f"{doc.doc_id}#p{i+1}",
+                block_id=f"{doc.doc_id}#p{i + 1}",
                 doc_id=doc.doc_id,
                 type="paragraph",
                 text=text,
