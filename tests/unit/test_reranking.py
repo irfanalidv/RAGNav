@@ -8,6 +8,7 @@ import pytest
 from ragnav.exceptions import RAGNavEmbeddingError
 from ragnav.models import Block
 from ragnav.reranking import CrossEncoderReranker
+from tests.conftest import require_sentence_transformers
 
 
 def test_cross_encoder_rerank_empty_returns_empty():
@@ -36,9 +37,6 @@ def test_cross_encoder_rerank_raises_without_sentence_transformers():
             CrossEncoderReranker().rerank("capital of France", [blk], top_k=1)
     msg = str(excinfo.value).lower()
     assert "ragnav[embeddings]" in msg or "pip install" in msg
-
-
-from tests.conftest import require_sentence_transformers
 
 
 def test_cross_encoder_rerank_orders_by_relevance():

@@ -93,7 +93,9 @@ def test_retrieve_uses_retrieval_cache_on_second_call():
     llm = FakeLLMClient()
     doc = Document(doc_id="d")
     blocks = [Block(block_id="b1", doc_id="d", type="paragraph", text="cache me please")]
-    idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False)
+    idx = RAGNavIndex.build(
+        documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False
+    )
     from ragnav.cache.sqlite_cache import RetrievalCache, SqliteCacheConfig, SqliteKV
 
     cache = RetrievalCache(SqliteKV(SqliteCacheConfig(db_path=":memory:")))
@@ -118,9 +120,7 @@ def test_tree_prompt_baseline_returns_llm_payload():
 def test_tree_search_llm_picks_nodes_from_json():
     llm = MagicMock()
     llm.embed = MagicMock(side_effect=lambda inputs, model=None: [[0.1] * 64 for _ in inputs])
-    llm.chat = MagicMock(
-        return_value='{"done": false, "node_list": ["p2"]}'
-    )
+    llm.chat = MagicMock(return_value='{"done": false, "node_list": ["p2"]}')
     idx = _paperish_index(FakeLLMClient())
     ret = RAGNavRetriever(index=idx, llm=llm)
     res = ret.tree_search_llm("methods", max_nodes=10, max_steps=1, nodes_per_step=2)
@@ -135,7 +135,9 @@ def test_retrieve_weighted_fusion_differs_from_rrf():
         Block(block_id="b1", doc_id="d", type="paragraph", text="unique alpha token"),
         Block(block_id="b2", doc_id="d", type="paragraph", text="unique beta token"),
     ]
-    idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False)
+    idx = RAGNavIndex.build(
+        documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False
+    )
     ret = RAGNavRetriever(index=idx, llm=llm)
     rrf = ret.retrieve("alpha", fusion="rrf", k_final=2, expand_structure=False)
     weighted = ret.retrieve(

@@ -70,7 +70,9 @@ def test_entity_graph_retriever_hybrid_fallback_delegates():
     llm = FakeLLMClient()
     doc = Document(doc_id="d")
     blocks = [Block(block_id="b1", doc_id="d", type="paragraph", text="Paris capital France")]
-    idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False)
+    idx = RAGNavIndex.build(
+        documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False
+    )
     rag = RAGNavRetriever(index=idx, llm=llm)
     g = EntityGraph()
     egr = EntityGraphRetriever(graph=g, blocks_by_id={})

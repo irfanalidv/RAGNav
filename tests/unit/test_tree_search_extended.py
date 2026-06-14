@@ -12,7 +12,9 @@ def _indexed_retriever(llm=None):
     llm = llm or FakeLLMClient()
     doc = Document(doc_id="d", source="doc.md")
     blocks = [
-        Block(block_id="h1", doc_id="d", type="heading", text="Overview", heading_path=("Overview",)),
+        Block(
+            block_id="h1", doc_id="d", type="heading", text="Overview", heading_path=("Overview",)
+        ),
         Block(
             block_id="p1",
             doc_id="d",
@@ -30,7 +32,9 @@ def _indexed_retriever(llm=None):
             heading_path=("Overview",),
         ),
     ]
-    idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False)
+    idx = RAGNavIndex.build(
+        documents=[doc], blocks=blocks, llm=llm, use_sentence_transformers=False
+    )
     return RAGNavRetriever(index=idx, llm=llm)
 
 

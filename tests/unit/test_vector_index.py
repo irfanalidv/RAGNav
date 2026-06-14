@@ -7,6 +7,7 @@ import pytest
 from ragnav.exceptions import RAGNavEmbeddingError
 from ragnav.index.vectors import VectorIndex
 from ragnav.models import Block
+from tests.conftest import require_sentence_transformers
 
 
 def _blocks_10() -> list[Block]:
@@ -41,9 +42,6 @@ def test_from_embeddings_ranks_by_cosine():
     q = [1.0] + [0.0] * (dim - 1)
     hits = vi.search(q, k=3)
     assert hits[0][0].block_id == "b0"
-
-
-from tests.conftest import require_sentence_transformers
 
 
 def test_sentence_transformer_build_query_france_top3():

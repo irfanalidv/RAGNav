@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import io
-import sys
-
 from ragnav.display import create_node_mapping, print_tree, print_wrapped
 from ragnav.models import Block
 

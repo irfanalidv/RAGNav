@@ -5,7 +5,11 @@ from unittest.mock import MagicMock, patch
 from ragnav.llm.fake import FakeLLMClient
 from ragnav.models import Block, Document
 from ragnav.pipelines.hybrid import HybridRagConfig, hybrid_answer
-from ragnav.pipelines.vectorless import VectorlessRagConfig, vectorless_answer, vectorless_rag_from_pdf_bytes
+from ragnav.pipelines.vectorless import (
+    VectorlessRagConfig,
+    vectorless_answer,
+    vectorless_rag_from_pdf_bytes,
+)
 
 
 def test_vectorless_answer_grounded_in_retrieved_context():

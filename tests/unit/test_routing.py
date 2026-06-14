@@ -90,8 +90,6 @@ def test_generate_doc_descriptions_uses_outline_titles():
 
 
 def test_route_documents_by_description_parses_json_answer():
-    llm = FakeLLMClient()
-
     class PickFinanceLLM(FakeLLMClient):
         def chat(self, *, messages, model=None, temperature=0):
             return json.dumps({"thinking": "finance", "answer": ["finance"]})
