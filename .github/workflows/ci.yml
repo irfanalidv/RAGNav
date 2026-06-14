@@ -7,7 +7,33 @@ on:
     branches: [main]
 
 jobs:
+  download-models:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install package + dev extras
+        run: pip install -e ".[dev]"
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-models-v1-${{ hashFiles('pyproject.toml') }}
+      - name: Pre-download sentence-transformers models
+        run: |
+          python - <<'PY'
+          from sentence_transformers import CrossEncoder, SentenceTransformer
+
+          SentenceTransformer("all-MiniLM-L6-v2")
+          CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+          print("models cached")
+          PY
+
   test:
+    needs: download-models
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,6 +45,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+      - name: Restore Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-models-v1-${{ hashFiles('pyproject.toml') }}
       - name: Install package + dev extras
         run: pip install -e ".[dev]"
       - name: Lint (ruff)
@@ -28,6 +59,8 @@ jobs:
       - name: Type check (mypy, non-blocking)
         run: mypy ragnav || true
       - name: Tests + coverage
+        env:
+          HF_HUB_OFFLINE: "1"
         run: pytest --cov=ragnav --cov-report=xml --cov-report=term-missing
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
