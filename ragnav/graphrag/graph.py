@@ -37,9 +37,10 @@ class EntityGraph:
             return list(rels)
         return [r for r in rels if r.type in types]
 
-    def in_relations(self, entity_id: str, *, types: Optional[set[RelationType]] = None) -> list[Relation]:
+    def in_relations(
+        self, entity_id: str, *, types: Optional[set[RelationType]] = None
+    ) -> list[Relation]:
         rels = self._in.get(entity_id, [])
         if types is None:
             return list(rels)
         return [r for r in rels if r.type in types]
-

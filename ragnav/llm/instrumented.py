@@ -40,4 +40,3 @@ class InstrumentedLLMClient(LLMClient):
             self.stats.embed_calls += 1
             self.stats.embedded_texts += len(items)
             self.stats.embed_ms += (time.perf_counter() - t0) * 1000.0
-

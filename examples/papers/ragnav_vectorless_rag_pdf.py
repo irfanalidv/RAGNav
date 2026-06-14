@@ -1,6 +1,10 @@
 def main() -> None:
     from ragnav.llm.mistral import MistralClient
-    from ragnav.pipelines.vectorless import VectorlessRagConfig, vectorless_answer, vectorless_rag_pdf_url
+    from ragnav.pipelines.vectorless import (
+        VectorlessRagConfig,
+        vectorless_answer,
+        vectorless_rag_pdf_url,
+    )
 
     PDF_URL = "https://arxiv.org/pdf/2507.13334.pdf"
     query = "What are the evaluation methods used in this paper?"
@@ -17,4 +21,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

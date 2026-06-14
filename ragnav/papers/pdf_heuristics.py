@@ -63,7 +63,11 @@ def is_heading_line(line: str) -> tuple[int, str, Optional[str]]:
 
     # All-caps short line is often a heading in papers.
     letters = [c for c in raw if c.isalpha()]
-    if letters and sum(1 for c in letters if c.isupper()) / max(1, len(letters)) > 0.8 and len(raw) <= 60:
+    if (
+        letters
+        and sum(1 for c in letters if c.isupper()) / max(1, len(letters)) > 0.8
+        and len(raw) <= 60
+    ):
         return (1, raw.title(), None)
 
     return (0, "", None)
@@ -83,4 +87,3 @@ def find_sec_mentions(text: str) -> set[str]:
 
 def find_app_mentions(text: str) -> set[str]:
     return {x.upper() for x in MENTION_APP_RE.findall(text or "")}
-

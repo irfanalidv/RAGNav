@@ -3,16 +3,15 @@
 [![PyPI](https://img.shields.io/pypi/v/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![Python](https://img.shields.io/pypi/pyversions/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![License: MIT](https://img.shields.io/pypi/l/ragnav.svg)](https://pypi.org/project/ragnav/)
+[![CI](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml/badge.svg)](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/irfanalidv/RAGNav/branch/main/graph/badge.svg)](https://codecov.io/gh/irfanalidv/RAGNav)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/ragnav?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/ragnav)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)
 
 **Production-grade hybrid retrieval** — BM25 plus dense embeddings plus optional structure-aware expansion. With **sentence-transformers** (default), you can index and query **without any API key** or separate LLM client for the common path below.
 
-| Result | Detail |
-|--------|--------|
-| **SQuAD R@3** | **0.956** (500 questions, hybrid RRF, zero paid API calls) |
-| **CUAD span S@3** | **0.071** (clause-friendly metric; see benchmarks) |
+On **SQuAD** (500 questions, fully offline, zero paid API calls), hybrid RAGNav reaches **R@3 = 0.956**, beating BM25-only (0.932) and embedding-only (0.906). Reproduce: `python benchmarks/squad_benchmark.py` (results committed in `benchmarks/results/`).
 
 Frontier-LLM “build an index per document” stacks optimize a different cost and reproducibility tradeoff; RAGNav targets **pip-install hybrid search** with **offline, reproducible** benchmarks.
 
@@ -338,7 +337,7 @@ Anthropic, Groq, Ollama — same pattern (~10 lines each).
 
 Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
 
-### Retrieval accuracy
+### Retrieval accuracy (SQuAD)
 
 | Dataset | Method | R@1 | R@3 | R@5 | MRR@10 |
 |---------|--------|-----|-----|-----|--------|
@@ -346,6 +345,15 @@ Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py
 | SQuAD | Embedding-only | 0.772 | 0.906 | 0.942 | 0.844 |
 | SQuAD | **RAGNav hybrid (RRF 0.5/0.5)** | **0.864** | **0.956** | **0.978** | **0.912** |
 | SQuAD | Hybrid RRF + cross-encoder reranker | 0.862 | 0.944 | 0.968 | 0.906 |
+
+*SQuAD: 500 questions, 447 unique passages, `rajpurkar/squad` validation set, CC BY-SA 4.0*
+
+### Limitations / hard cases
+
+Legal-contract span retrieval is hard: on **CUAD**, span **S@3 = 0.071**. I report this openly — clause-level legal retrieval is an open problem and a roadmap item, not a solved one. Reproduce: `python benchmarks/cuad_benchmark.py`.
+
+| Dataset | Method | R@1 | R@3 | R@5 | MRR@10 |
+|---------|--------|-----|-----|-----|--------|
 | CUAD (block-level) | BM25-only | 0.017 | 0.040 | 0.044 | 0.032 |
 | CUAD (block-level) | **RAGNav hybrid (legal ingest + RRF)** | **0.007** | **0.047** | **0.051** | **0.027** |
 | CUAD (block-level) | **RAGNav + graph expansion** | **0.007** | **0.047** | **0.051** | **0.027** |
@@ -359,8 +367,6 @@ Gold answer span may sit across legal-ingest block boundaries; **span S@k** is t
 | CUAD (span) | BM25-only | 0.020 | 0.061 | 0.071 | 0.044 |
 | CUAD (span) | **RAGNav hybrid (legal ingest + RRF)** | **0.010** | **0.071** | **0.074** | **0.037** |
 | CUAD (span) | **RAGNav + graph expansion** | **0.010** | **0.071** | **0.074** | **0.037** |
-
-*SQuAD: 500 questions, 447 unique passages, `rajpurkar/squad` validation set, CC BY-SA 4.0*
 
 *CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0. Block-level R@k requires a gold block_id in the top-k list; span S@k only requires the gold answer text to appear in the merged text of those blocks.*
 

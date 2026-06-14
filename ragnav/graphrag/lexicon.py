@@ -82,4 +82,3 @@ def normalize_key(s: str) -> str:
 def contains_any(text: str, phrases: set[str]) -> bool:
     low = (text or "").lower()
     return any(p in low for p in phrases)
-

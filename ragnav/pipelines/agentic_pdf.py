@@ -50,4 +50,3 @@ def agentic_pdf_url(
 
     answer = agentic_retrieve_then_answer(query=query, llm=llm, retrieve_raw=tool, cfg=cfg.agent)
     return answer, doc_id
-

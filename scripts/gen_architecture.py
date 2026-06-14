@@ -87,9 +87,7 @@ def text_center(draw, text, cx, cy, fnt, color=BLACK, anchor="mm"):
 
 
 def rect(draw, x1, y1, x2, y2, fill, outline=BORDER, radius=14, width=2):
-    draw.rounded_rectangle(
-        [x1, y1, x2, y2], radius=radius, fill=fill, outline=outline, width=width
-    )
+    draw.rounded_rectangle([x1, y1, x2, y2], radius=radius, fill=fill, outline=outline, width=width)
 
 
 def circle(draw, cx, cy, r, fill=DARK, outline=DARK):
@@ -225,11 +223,7 @@ def main() -> None:
         if ln == "":
             ty += 14
             continue
-        f = (
-            F_SMALL
-            if ln.startswith("Sqlite") or ln.endswith("Cache")
-            else F_BODY
-        )
+        f = F_SMALL if ln.startswith("Sqlite") or ln.endswith("Cache") else F_BODY
         text_center(d, ln, cx, ty, f, DARK)
         ty += 32
 
@@ -427,7 +421,9 @@ def main() -> None:
     qcy = (BOTY + DASH_BOT) // 2
     text_center(d, "QueryFallback  (optional)", (qx1 + qx2) // 2, qcy - 36, F_HEAD, DARK)
     text_center(d, "LOW / MEDIUM confidence", (qx1 + qx2) // 2, qcy - 2, F_BODY, GREY50)
-    text_center(d, "→  LLM query variations  →  best result", (qx1 + qx2) // 2, qcy + 28, F_BODY, GREY50)
+    text_center(
+        d, "→  LLM query variations  →  best result", (qx1 + qx2) // 2, qcy + 28, F_BODY, GREY50
+    )
 
     ret_x = cols[4][0] + cols[4][1] // 2
     qcx = (qx1 + qx2) // 2

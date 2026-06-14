@@ -15,12 +15,12 @@ EntityType = Literal[
 ]
 
 RelationType = Literal[
-    "evaluated_on",      # model/method -> dataset
-    "uses_metric",       # model/method -> metric
-    "addresses_task",    # model/method -> task
-    "defined_in",        # entity -> paper_section
-    "alias_of",          # entity -> entity
-    "described_as",      # entity -> entity (e.g., dataset -> task domain)
+    "evaluated_on",  # model/method -> dataset
+    "uses_metric",  # model/method -> metric
+    "addresses_task",  # model/method -> task
+    "defined_in",  # entity -> paper_section
+    "alias_of",  # entity -> entity
+    "described_as",  # entity -> entity (e.g., dataset -> task domain)
 ]
 
 
@@ -40,4 +40,3 @@ class Relation:
     # block_ids that justify this relation (provenance)
     evidence_block_ids: tuple[str, ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
-

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Any
 
 from ragnav.ingest.markdown import ingest_markdown_string
 from ragnav.env import load_env
@@ -105,7 +104,7 @@ If you need supporting evidence, retrieve.
         memory.append(
             {
                 "role": "user",
-                "content": "Return the final answer now as JSON: {\"action\":\"answer\",\"answer\":\"...\"}",
+                "content": 'Return the final answer now as JSON: {"action":"answer","answer":"..."}',
             }
         )
         final_raw = llm.chat(messages=memory, temperature=0)
@@ -116,7 +115,7 @@ If you need supporting evidence, retrieve.
     memory.append(
         {
             "role": "user",
-            "content": "Return the final answer now as JSON: {\"action\":\"answer\",\"answer\":\"...\"}",
+            "content": 'Return the final answer now as JSON: {"action":"answer","answer":"..."}',
         }
     )
     final_raw = llm.chat(messages=memory, temperature=0)
@@ -154,4 +153,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -123,13 +123,18 @@ def main() -> None:
         )
         tq_ms = (time.perf_counter() - tq) * 1000.0
         top = res.blocks[0] if res.blocks else None
-        snippet = (top.text[:160] + "…") if top and len(top.text) > 160 else (top.text if top else "")
+        snippet = (
+            (top.text[:160] + "…") if top and len(top.text) > 160 else (top.text if top else "")
+        )
         hit = top is not None and gold.lower() in top.text.lower()
         mark = "✓" if hit else "✗"
         print("[%s] %s Q: %s" % (mark, item["tag"], q))
         print("    Gold: %s" % gold[:120])
         print("    Top:  %s" % snippet.replace("\n", " "))
-        print("    Query time: %.0f ms | gold block id in top-5: %s\n" % (tq_ms, gold_bid in {b.block_id for b in res.blocks[:5]}))
+        print(
+            "    Query time: %.0f ms | gold block id in top-5: %s\n"
+            % (tq_ms, gold_bid in {b.block_id for b in res.blocks[:5]})
+        )
 
 
 if __name__ == "__main__":

@@ -123,4 +123,3 @@ Context blocks:
 
     cited_ids = tuple(v["unique_cited_block_ids"])
     return CitedAnswer(answer=ans.strip(), cited_block_ids=cited_ids, trace={"validation": v})
-

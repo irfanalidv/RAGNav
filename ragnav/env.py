@@ -13,4 +13,3 @@ def load_env() -> None:
     except Exception:
         return
     load_dotenv()
-

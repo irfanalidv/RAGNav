@@ -28,7 +28,7 @@ def test_cost_tracker_unknown_model_uses_default_pricing():
     t.record("unknown-model-xyz", 1_000_000, 1_000_000)
     r = t.report()
     assert r.calls == 1
-    expected = (1.0 + 3.0)  # per 1M in + out with _DEFAULT_PRICING
+    expected = 1.0 + 3.0  # per 1M in + out with _DEFAULT_PRICING
     assert abs(r.total_cost_usd - expected) < 1e-9
 
 

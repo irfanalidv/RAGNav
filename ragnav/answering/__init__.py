@@ -11,4 +11,3 @@ __all__ = [
     "answer_with_inline_citations",
     "validate_inline_citations",
 ]
-

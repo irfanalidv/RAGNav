@@ -38,10 +38,15 @@ def test_cross_encoder_rerank_raises_without_sentence_transformers():
     assert "ragnav[embeddings]" in msg or "pip install" in msg
 
 
+from tests.conftest import require_sentence_transformers
+
+
 def test_cross_encoder_rerank_orders_by_relevance():
-    pytest.importorskip("sentence_transformers")
+    require_sentence_transformers()
     blocks = [
-        Block(block_id="b0", doc_id="d", type="paragraph", text="Berlin is a large city in Germany."),
+        Block(
+            block_id="b0", doc_id="d", type="paragraph", text="Berlin is a large city in Germany."
+        ),
         Block(block_id="b1", doc_id="d", type="paragraph", text="Rome is in Italy."),
         Block(
             block_id="b2",

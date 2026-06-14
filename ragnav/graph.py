@@ -7,13 +7,13 @@ from .models import Block, Document
 
 
 EdgeType = Literal[
-    "parent",        # hierarchy (e.g., heading -> paragraph)
-    "next",          # sequence (e.g., message -> next message)
-    "reply_to",      # conversational threading
-    "quote_of",      # quoting/referencing another block
-    "link_to",       # hyperlink / citation
-    "contains",      # container relationship (e.g., doc -> block)
-    "same_thread",   # grouping edge for threads
+    "parent",  # hierarchy (e.g., heading -> paragraph)
+    "next",  # sequence (e.g., message -> next message)
+    "reply_to",  # conversational threading
+    "quote_of",  # quoting/referencing another block
+    "link_to",  # hyperlink / citation
+    "contains",  # container relationship (e.g., doc -> block)
+    "same_thread",  # grouping edge for threads
 ]
 
 
@@ -94,4 +94,3 @@ class BlockGraph:
                 if len(seen) >= max_degree:
                     return seen
         return seen
-

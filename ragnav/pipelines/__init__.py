@@ -16,4 +16,3 @@ __all__ = [
     "vectorless_answer",
     "vectorless_rag_pdf_url",
 ]
-

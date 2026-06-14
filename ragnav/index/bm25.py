@@ -35,13 +35,8 @@ class BM25Index:
         q = _tokenize(query)
         scores = self._bm25.get_scores(q)
         if allowed_doc_ids is not None:
-            idxs = [
-                i
-                for i in range(len(self.blocks))
-                if self.block_doc_ids[i] in allowed_doc_ids
-            ]
+            idxs = [i for i in range(len(self.blocks)) if self.block_doc_ids[i] in allowed_doc_ids]
         else:
             idxs = list(range(len(self.blocks)))
         idxs = sorted(idxs, key=lambda i: float(scores[i]), reverse=True)[:k]
         return [(self.blocks[i], float(scores[i])) for i in idxs]
-

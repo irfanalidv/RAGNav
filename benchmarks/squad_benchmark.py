@@ -143,7 +143,9 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=42, help="RNG seed for shuffling (default: 42)")
     args = parser.parse_args()
 
-    load_dataset, RAGNavIndex, RAGNavRetriever, FakeLLMClient, ragnav_version = _build_index_and_retriever()
+    load_dataset, RAGNavIndex, RAGNavRetriever, FakeLLMClient, ragnav_version = (
+        _build_index_and_retriever()
+    )
 
     model_name = "all-MiniLM-L6-v2"
     print("Loading SQuAD validation split…", flush=True)
@@ -152,7 +154,8 @@ def main() -> int:
     sample_rows = _collect_sample(rows, args.sample, args.seed)
     documents, blocks = _unique_passages(sample_rows)
     print(
-        "Building index: %d unique passages, %d questions in sample…" % (len(blocks), len(sample_rows)),
+        "Building index: %d unique passages, %d questions in sample…"
+        % (len(blocks), len(sample_rows)),
         flush=True,
     )
     llm = FakeLLMClient()

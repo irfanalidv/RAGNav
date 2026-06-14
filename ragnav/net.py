@@ -18,7 +18,9 @@ def download_bytes(
     try:
         import requests
     except Exception as e:
-        raise RAGNavIngestError("Missing optional dependency `requests`. Install with: pip install -e \".[pdf]\"") from e
+        raise RAGNavIngestError(
+            'Missing optional dependency `requests`. Install with: pip install -e ".[pdf]"'
+        ) from e
 
     resp = requests.get(url, timeout=timeout_s)
     resp.raise_for_status()
@@ -30,9 +32,10 @@ def download_bytes(
     return data
 
 
-def download_pdf(url: str, *, out_path: Optional[Union[str, Path]] = None, timeout_s: int = 60) -> bytes:
+def download_pdf(
+    url: str, *, out_path: Optional[Union[str, Path]] = None, timeout_s: int = 60
+) -> bytes:
     """
     Convenience wrapper for PDF URLs (arXiv, etc.).
     """
     return download_bytes(url, out_path=out_path, timeout_s=timeout_s)
-

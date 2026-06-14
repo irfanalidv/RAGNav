@@ -48,8 +48,16 @@ def _cases_from_manifest(manifest: dict[str, Any], *, pdf_name: str) -> list[Eva
                 EvalCase(
                     case_id=str(c.get("case_id") or c.get("query") or "case"),
                     query=str(c.get("query") or ""),
-                    expected_pages=set(int(x) for x in (c.get("expected_pages") or []) if isinstance(x, int) or str(x).isdigit()),
-                    expected_text_substrings=set(str(x) for x in (c.get("expected_text_substrings") or []) if isinstance(x, (str, int))),
+                    expected_pages=set(
+                        int(x)
+                        for x in (c.get("expected_pages") or [])
+                        if isinstance(x, int) or str(x).isdigit()
+                    ),
+                    expected_text_substrings=set(
+                        str(x)
+                        for x in (c.get("expected_text_substrings") or [])
+                        if isinstance(x, (str, int))
+                    ),
                     tags=set(str(x) for x in (c.get("tags") or []) if isinstance(x, (str, int))),
                 )
             )
@@ -99,7 +107,9 @@ def main() -> None:
             continue
 
         # BM25-only index for deterministic offline behavior
-        idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=fake, build_vectors=False, edges=edges)
+        idx = RAGNavIndex.build(
+            documents=[doc], blocks=blocks, llm=fake, build_vectors=False, edges=edges
+        )
         rag = RAGNavRetriever(index=idx, llm=fake)
 
         # GraphRAG entity layer
@@ -113,14 +123,21 @@ def main() -> None:
         if cases is None:
             # Generic queries: these should usually find something in real papers, but we keep them loose.
             cases = [
-                EvalCase(case_id="datasets", query="Which datasets are mentioned?", expected_pages=set()),
-                EvalCase(case_id="metrics", query="Which metrics are reported?", expected_pages=set()),
+                EvalCase(
+                    case_id="datasets", query="Which datasets are mentioned?", expected_pages=set()
+                ),
+                EvalCase(
+                    case_id="metrics", query="Which metrics are reported?", expected_pages=set()
+                ),
             ]
 
         retrieved_graph = [egr.retrieve(c.query, cfg=cfg)["blocks"] for c in cases]
         m_graph = score_retrieval(cases, retrieved_graph)
 
-        retrieved_nav = [rag.retrieve_paper(c.query, allowed_doc_ids={doc.doc_id}, use_vectors=False).blocks for c in cases]
+        retrieved_nav = [
+            rag.retrieve_paper(c.query, allowed_doc_ids={doc.doc_id}, use_vectors=False).blocks
+            for c in cases
+        ]
         m_nav = score_retrieval(cases, retrieved_nav)
 
         per_pdf.append(
@@ -129,7 +146,8 @@ def main() -> None:
                 "ok": True,
                 "n_blocks": len(blocks),
                 "n_edges": len(edges),
-                "manifest_used": manifest is not None and _cases_from_manifest(manifest, pdf_name=p.name) is not None,
+                "manifest_used": manifest is not None
+                and _cases_from_manifest(manifest, pdf_name=p.name) is not None,
                 "n_cases": len(cases),
                 "entity_graph_metrics": asdict(m_graph),
                 "paper_nav_metrics": asdict(m_nav),
@@ -158,4 +176,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

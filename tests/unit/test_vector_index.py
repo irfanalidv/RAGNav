@@ -43,8 +43,11 @@ def test_from_embeddings_ranks_by_cosine():
     assert hits[0][0].block_id == "b0"
 
 
+from tests.conftest import require_sentence_transformers
+
+
 def test_sentence_transformer_build_query_france_top3():
-    pytest.importorskip("sentence_transformers")
+    require_sentence_transformers()
     from ragnav.index import vectors as vv
 
     vv._ST_MODELS.clear()

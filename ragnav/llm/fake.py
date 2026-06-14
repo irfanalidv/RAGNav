@@ -62,4 +62,3 @@ class FakeLLMClient:
                 vec.append((b / 127.5) - 1.0)
             out.append(vec)
         return out
-

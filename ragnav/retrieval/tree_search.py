@@ -5,10 +5,19 @@ from typing import Any, Optional
 from ..graph import EdgeType
 from ..json_utils import extract_json
 from ..models import Block, ConfidenceLevel, RetrievalResult
-from ._helpers import _dedupe_keep_best, _expand_graph, _expand_structure, _minmax_norm, _safe_title, _with_trace
+from ._helpers import (
+    _dedupe_keep_best,
+    _expand_graph,
+    _expand_structure,
+    _minmax_norm,
+    _safe_title,
+    _with_trace,
+)
 
 
-def tree_prompt_baseline(retriever: Any, query: str, *, max_nodes: int = 80, temperature: float = 0) -> dict[str, Any]:
+def tree_prompt_baseline(
+    retriever: Any, query: str, *, max_nodes: int = 80, temperature: float = 0
+) -> dict[str, Any]:
     """
     Baseline: give the model a trimmed list of nodes (ids + titles) and ask for relevant node ids.
     """
@@ -34,7 +43,9 @@ Reply in the following JSON format:
 Directly return the final JSON structure. Do not output anything else.
 """.strip()
 
-    raw = retriever.llm.chat(messages=[{"role": "user", "content": prompt}], temperature=temperature)
+    raw = retriever.llm.chat(
+        messages=[{"role": "user", "content": prompt}], temperature=temperature
+    )
     return {"raw": raw, "prompt_nodes": nodes}
 
 
@@ -93,7 +104,9 @@ Rules:
 - Prefer higher-level/summary nodes before deep details if unsure.
 """.strip()
 
-        raw = retriever.llm.chat(messages=[{"role": "user", "content": prompt}], temperature=temperature)
+        raw = retriever.llm.chat(
+            messages=[{"role": "user", "content": prompt}], temperature=temperature
+        )
         try:
             parsed = extract_json(raw)
         except Exception:
@@ -105,6 +118,7 @@ Rules:
             node_list_any = parsed.get("node_list", [])
             if isinstance(node_list_any, list):
                 node_list = [str(x) for x in node_list_any if isinstance(x, (str, int))]
+        # done:true means "stop navigating"; node_list from this step is intentionally not applied.
         if done:
             break
 
@@ -125,10 +139,16 @@ Rules:
             if nid not in picked_ids:
                 picked_ids.append(nid)
 
-    seeds = [retriever.index.blocks_by_id[nid] for nid in picked_ids if nid in retriever.index.blocks_by_id]
+    seeds = [
+        retriever.index.blocks_by_id[nid]
+        for nid in picked_ids
+        if nid in retriever.index.blocks_by_id
+    ]
     expanded = seeds
     if expand_structure:
-        expanded = _expand_structure(retriever.index.blocks_by_id, retriever.index.blocks_by_parent, expanded)
+        expanded = _expand_structure(
+            retriever.index.blocks_by_id, retriever.index.blocks_by_parent, expanded
+        )
     if expand_graph and retriever.index.edges:
         types = graph_edge_types or {"next", "reply_to", "same_thread", "quote_of"}
         expanded = _expand_graph(
@@ -217,7 +237,9 @@ Reply ONLY JSON:
 Rules:
 - Only pick node_ids from the provided Candidates list.
 """.strip()
-    raw = retriever.llm.chat(messages=[{"role": "user", "content": prompt}], temperature=temperature)
+    raw = retriever.llm.chat(
+        messages=[{"role": "user", "content": prompt}], temperature=temperature
+    )
     try:
         parsed = extract_json(raw)
     except Exception:
@@ -240,12 +262,20 @@ Rules:
             expand_structure=expand_structure,
             use_vectors=use_vectors,
         )
-        return _with_trace(fallback, {"mode": "hybrid_tree_search_llm", "fallback": True, "raw": raw})
+        return _with_trace(
+            fallback, {"mode": "hybrid_tree_search_llm", "fallback": True, "raw": raw}
+        )
 
-    seeds = [retriever.index.blocks_by_id[nid] for nid in node_list if nid in retriever.index.blocks_by_id]
+    seeds = [
+        retriever.index.blocks_by_id[nid]
+        for nid in node_list
+        if nid in retriever.index.blocks_by_id
+    ]
     expanded = seeds
     if expand_structure:
-        expanded = _expand_structure(retriever.index.blocks_by_id, retriever.index.blocks_by_parent, expanded)
+        expanded = _expand_structure(
+            retriever.index.blocks_by_id, retriever.index.blocks_by_parent, expanded
+        )
 
     return RetrievalResult(
         query=query,

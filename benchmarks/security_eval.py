@@ -38,10 +38,11 @@ def main() -> None:
     texts = "\n".join(b.text for b in res.blocks)
 
     assert "Ignore previous instructions" not in texts, "expected injection block to be dropped"
-    assert "sk-THISSHOULDNOTLEAK" not in texts, "expected secret-like string to be redacted or dropped"
+    assert (
+        "sk-THISSHOULDNOTLEAK" not in texts
+    ), "expected secret-like string to be redacted or dropped"
     print("security_eval_ok")
 
 
 if __name__ == "__main__":
     main()
-

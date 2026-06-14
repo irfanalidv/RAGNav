@@ -26,7 +26,9 @@ def main() -> None:
     try:
         import requests
     except Exception as e:
-        raise RuntimeError("Missing optional dependency `requests`. Install with: pip install -e \".[pdf]\"") from e
+        raise RuntimeError(
+            'Missing optional dependency `requests`. Install with: pip install -e ".[pdf]"'
+        ) from e
 
     llm = MistralClient()
 
@@ -48,7 +50,9 @@ def main() -> None:
     )
 
     # Standard retrieval index (optional fallback)
-    idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, edges=edges, build_vectors=True)
+    idx = RAGNavIndex.build(
+        documents=[doc], blocks=blocks, llm=llm, edges=edges, build_vectors=True
+    )
     rag = RAGNavRetriever(index=idx, llm=llm)
 
     # GraphRAG entity graph
@@ -82,4 +86,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

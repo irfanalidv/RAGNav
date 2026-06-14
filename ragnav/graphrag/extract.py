@@ -15,13 +15,25 @@ _TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_\-+/]*")
 # better to miss than hallucinate relations.
 _DATASET_CUES = re.compile(r"\bdataset(?:s)?\b", re.IGNORECASE)
 _EVAL_ON_RE = re.compile(r"\b(?:evaluate|evaluated|evaluation)\s+(?:on|using)\b", re.IGNORECASE)
-_USES_METRIC_RE = re.compile(r"\b(?:metric|metrics)\b|\b(?:accuracy|f1|bleu|rouge|mrr|ndcg|anls)\b", re.IGNORECASE)
-_TASK_RE = re.compile(r"\b(?:task|tasks)\b|\b(?:classification|retrieval|summarization|qa|question answering)\b", re.IGNORECASE)
+_USES_METRIC_RE = re.compile(
+    r"\b(?:metric|metrics)\b|\b(?:accuracy|f1|bleu|rouge|mrr|ndcg|anls)\b", re.IGNORECASE
+)
+_TASK_RE = re.compile(
+    r"\b(?:task|tasks)\b|\b(?:classification|retrieval|summarization|qa|question answering)\b",
+    re.IGNORECASE,
+)
 
 _PAREN_ALIAS_RE = re.compile(r"\b([A-Z][A-Za-z0-9][A-Za-z0-9 \-/]{2,60})\s*\(([^)]+)\)")
-_ON_DATASET_RE = re.compile(r"\bon\s+the\s+([A-Z][A-Za-z0-9][A-Za-z0-9 \-/]{2,60})\s+(?:dataset|benchmark)\b", re.IGNORECASE)
-_REPORT_METRIC_RE = re.compile(r"\b(?:report|reports|reported)\s+([A-Za-z][A-Za-z0-9 \-/]{1,30})\b", re.IGNORECASE)
-_FOR_TASK_RE = re.compile(r"\bfor\s+(question answering|reading comprehension|classification|retrieval|summarization|natural language inference)\b", re.IGNORECASE)
+_ON_DATASET_RE = re.compile(
+    r"\bon\s+the\s+([A-Z][A-Za-z0-9][A-Za-z0-9 \-/]{2,60})\s+(?:dataset|benchmark)\b", re.IGNORECASE
+)
+_REPORT_METRIC_RE = re.compile(
+    r"\b(?:report|reports|reported)\s+([A-Za-z][A-Za-z0-9 \-/]{1,30})\b", re.IGNORECASE
+)
+_FOR_TASK_RE = re.compile(
+    r"\bfor\s+(question answering|reading comprehension|classification|retrieval|summarization|natural language inference)\b",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -103,7 +115,9 @@ def _lexicon_mentions(text: str) -> dict[str, set[str]]:
     return out
 
 
-def build_entity_graph(blocks: list[Block], *, cfg: EntityExtractConfig = EntityExtractConfig()) -> EntityGraph:
+def build_entity_graph(
+    blocks: list[Block], *, cfg: EntityExtractConfig = EntityExtractConfig()
+) -> EntityGraph:
     """
     Build an entity graph from blocks with provenance.
 
@@ -138,7 +152,11 @@ def build_entity_graph(blocks: list[Block], *, cfg: EntityExtractConfig = Entity
         text = b.text or ""
         token_cands = _candidates_from_text(text)[: cfg.max_entities_per_block]
         phrase_cands = _phrase_candidates(text, max_phrases=cfg.max_phrases_per_block)
-        lex = _lexicon_mentions(text) if cfg.enable_lexicon else {"dataset": set(), "model": set(), "metric": set(), "task": set()}
+        lex = (
+            _lexicon_mentions(text)
+            if cfg.enable_lexicon
+            else {"dataset": set(), "model": set(), "metric": set(), "task": set()}
+        )
 
         cands = list(dict.fromkeys(phrase_cands + token_cands))[: cfg.max_entities_per_block]
         if not cands and not any(lex.values()):
@@ -186,10 +204,25 @@ def build_entity_graph(blocks: list[Block], *, cfg: EntityExtractConfig = Entity
             if has_dataset and len(name) >= 3 and (name[0].isupper() or name.isupper()):
                 dataset_ids.append(get_or_add("dataset", name))
                 continue
-            if has_metric and low in {"accuracy", "f1", "bleu", "rouge", "mrr", "ndcg", "anls", "exact match", "em"}:
+            if has_metric and low in {
+                "accuracy",
+                "f1",
+                "bleu",
+                "rouge",
+                "mrr",
+                "ndcg",
+                "anls",
+                "exact match",
+                "em",
+            }:
                 metric_ids.append(get_or_add("metric", name))
                 continue
-            if has_task and low in {"qa", "question answering", "reading comprehension", "natural language inference"}:
+            if has_task and low in {
+                "qa",
+                "question answering",
+                "reading comprehension",
+                "natural language inference",
+            }:
                 task_ids.append(get_or_add("task", "Question Answering" if low == "qa" else name))
                 continue
 
@@ -205,31 +238,42 @@ def build_entity_graph(blocks: list[Block], *, cfg: EntityExtractConfig = Entity
         if has_eval and dataset_ids:
             for mid in model_ids[:3]:
                 for did in dataset_ids[:3]:
-                    g.add_relation(Relation(src=mid, dst=did, type="evaluated_on", evidence_block_ids=evidence))
+                    g.add_relation(
+                        Relation(src=mid, dst=did, type="evaluated_on", evidence_block_ids=evidence)
+                    )
 
         if has_metric and metric_ids:
             for mid in model_ids[:3]:
                 for met in metric_ids[:3]:
-                    g.add_relation(Relation(src=mid, dst=met, type="uses_metric", evidence_block_ids=evidence))
+                    g.add_relation(
+                        Relation(src=mid, dst=met, type="uses_metric", evidence_block_ids=evidence)
+                    )
 
         if has_task and task_ids:
             for mid in model_ids[:3]:
                 for tid in task_ids[:3]:
-                    g.add_relation(Relation(src=mid, dst=tid, type="addresses_task", evidence_block_ids=evidence))
+                    g.add_relation(
+                        Relation(
+                            src=mid, dst=tid, type="addresses_task", evidence_block_ids=evidence
+                        )
+                    )
 
         # Dataset -> task linkage (useful multi-hop for "what is dataset used for?")
         if dataset_ids and task_ids:
             for did in dataset_ids[:3]:
                 for tid in task_ids[:3]:
-                    g.add_relation(Relation(src=did, dst=tid, type="described_as", evidence_block_ids=evidence))
+                    g.add_relation(
+                        Relation(src=did, dst=tid, type="described_as", evidence_block_ids=evidence)
+                    )
 
         # Link to a "paper section" if present
         if b.heading_path:
             sec_name = " > ".join(b.heading_path)
             sid = get_or_add("paper_section", sec_name)
             for ent_id in (dataset_ids + model_ids + metric_ids + task_ids)[:6]:
-                g.add_relation(Relation(src=ent_id, dst=sid, type="defined_in", evidence_block_ids=evidence))
+                g.add_relation(
+                    Relation(src=ent_id, dst=sid, type="defined_in", evidence_block_ids=evidence)
+                )
 
     g.build_indexes()
     return g
-

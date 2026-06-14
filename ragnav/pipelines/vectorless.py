@@ -32,7 +32,9 @@ def vectorless_rag_from_pdf_bytes(
     - No precomputed embeddings (build_vectors=False)
     - Retrieval uses BM25 + structure expansion
     """
-    doc, blocks = ingest_pdf_bytes(pdf_bytes, name=pdf_name, opts=PdfIngestOptions(max_pages=cfg.max_pages))
+    doc, blocks = ingest_pdf_bytes(
+        pdf_bytes, name=pdf_name, opts=PdfIngestOptions(max_pages=cfg.max_pages)
+    )
     index = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, build_vectors=False)
     retriever = RAGNavRetriever(index=index, llm=llm)
 
@@ -85,4 +87,3 @@ def vectorless_rag_pdf_url(
         pdf_bytes=pdf_bytes, llm=llm, pdf_name=Path(str(cache_path)).name, cfg=cfg
     )
     return retrieve_fn, doc_id
-

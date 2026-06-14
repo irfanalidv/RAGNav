@@ -19,13 +19,17 @@ def _cmd_vectorless_pdf(args: argparse.Namespace) -> int:
     retrieve_fn, _doc_id = vectorless_rag_pdf_url(
         pdf_url=args.pdf_url,
         llm=llm,
-        cfg=VectorlessRagConfig(max_pages=args.max_pages, max_blocks=args.max_blocks, k_final=args.k_final),
+        cfg=VectorlessRagConfig(
+            max_pages=args.max_pages, max_blocks=args.max_blocks, k_final=args.k_final
+        ),
         cache_path=args.cache_path,
     )
     if args.print_hits:
         hits = retrieve_fn(args.query, retrieval_cache=rcache)
         print(json.dumps(hits, indent=2))
-    ans = vectorless_answer(query=args.query, retrieve_fn=lambda q: retrieve_fn(q, retrieval_cache=rcache), llm=llm)
+    ans = vectorless_answer(
+        query=args.query, retrieve_fn=lambda q: retrieve_fn(q, retrieval_cache=rcache), llm=llm
+    )
     print(ans)
     return 0
 
@@ -70,7 +74,9 @@ def _cmd_hybrid_pdf(args: argparse.Namespace) -> int:
             use_vectors=True,
         )
         print(json.dumps(hits, indent=2))
-    ans = hybrid_answer(query=args.query, retriever=retriever, llm=llm, cfg=cfg, retrieval_cache=rcache)
+    ans = hybrid_answer(
+        query=args.query, retriever=retriever, llm=llm, cfg=cfg, retrieval_cache=rcache
+    )
     print(ans)
     return 0
 
@@ -180,7 +186,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_vec.add_argument("--max-blocks", type=int, default=6)
     p_vec.add_argument("--k-final", type=int, default=6)
     p_vec.add_argument("--cache-path", default="data/document.pdf")
-    p_vec.add_argument("--cache-db", default=None, help="SQLite cache DB path (enables retrieval caching).")
+    p_vec.add_argument(
+        "--cache-db", default=None, help="SQLite cache DB path (enables retrieval caching)."
+    )
     p_vec.add_argument("--print-hits", action="store_true", help="Print retrieved evidence JSON.")
     p_vec.set_defaults(func=_cmd_vectorless_pdf)
 
@@ -196,11 +204,17 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_hyb.add_argument("--w-vec", type=float, default=0.55)
     p_hyb.add_argument("--embed-batch-size", type=int, default=64)
     p_hyb.add_argument("--cache-path", default="data/document.pdf")
-    p_hyb.add_argument("--cache-db", default=None, help="SQLite cache DB path (enables embedding+retrieval caching).")
+    p_hyb.add_argument(
+        "--cache-db",
+        default=None,
+        help="SQLite cache DB path (enables embedding+retrieval caching).",
+    )
     p_hyb.add_argument("--print-hits", action="store_true", help="Print retrieved evidence JSON.")
     p_hyb.set_defaults(func=_cmd_hybrid_pdf)
 
-    p_ag = sub.add_parser("agentic-pdf", help="Agentic retrieval over a PDF URL (hybrid retrieval tool).")
+    p_ag = sub.add_parser(
+        "agentic-pdf", help="Agentic retrieval over a PDF URL (hybrid retrieval tool)."
+    )
     p_ag.add_argument("--pdf-url", required=True, help="PDF URL (e.g. arXiv).")
     p_ag.add_argument("--query", required=True, help="User question.")
     p_ag.add_argument("--max-pages", type=int, default=25)
@@ -214,10 +228,16 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_ag.add_argument("--max-steps", type=int, default=3)
     p_ag.add_argument("--max-tool-blocks", type=int, default=8)
     p_ag.add_argument("--cache-path", default="data/document.pdf")
-    p_ag.add_argument("--cache-db", default=None, help="SQLite cache DB path (enables embedding+retrieval caching).")
+    p_ag.add_argument(
+        "--cache-db",
+        default=None,
+        help="SQLite cache DB path (enables embedding+retrieval caching).",
+    )
     p_ag.set_defaults(func=_cmd_agentic_pdf)
 
-    p_paper = sub.add_parser("paper-pdf", help="Paper-mode RAG over a PDF URL (page routing + cross-refs).")
+    p_paper = sub.add_parser(
+        "paper-pdf", help="Paper-mode RAG over a PDF URL (page routing + cross-refs)."
+    )
     p_paper.add_argument("--pdf-url", required=True, help="PDF URL (e.g. arXiv).")
     p_paper.add_argument("--pdf-name", default="paper.pdf", help="PDF filename used for doc_id.")
     p_paper.add_argument("--query", required=True, help="User question.")
@@ -227,16 +247,29 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_paper.add_argument("--graph-hops", type=int, default=1)
     p_paper.add_argument("--embed-batch-size", type=int, default=64)
     p_paper.add_argument("--max-answer-blocks", type=int, default=8)
-    p_paper.add_argument("--no-vectors", action="store_true", help="Disable embeddings (BM25-only).")
-    p_paper.add_argument("--no-follow-refs", action="store_true", help="Disable cross-reference following.")
-    p_paper.add_argument("--no-include-next", action="store_true", help="Disable including 'next' blocks.")
-    p_paper.add_argument("--cited", action="store_true", help="Answer with inline citations per sentence.")
+    p_paper.add_argument(
+        "--no-vectors", action="store_true", help="Disable embeddings (BM25-only)."
+    )
+    p_paper.add_argument(
+        "--no-follow-refs", action="store_true", help="Disable cross-reference following."
+    )
+    p_paper.add_argument(
+        "--no-include-next", action="store_true", help="Disable including 'next' blocks."
+    )
+    p_paper.add_argument(
+        "--cited", action="store_true", help="Answer with inline citations per sentence."
+    )
     p_paper.add_argument("--cache-path", default="data/paper.pdf")
-    p_paper.add_argument("--cache-db", default=None, help="SQLite cache DB path (enables embedding+retrieval caching).")
-    p_paper.add_argument("--print-hits", action="store_true", help="Print routed pages + evidence JSON.")
+    p_paper.add_argument(
+        "--cache-db",
+        default=None,
+        help="SQLite cache DB path (enables embedding+retrieval caching).",
+    )
+    p_paper.add_argument(
+        "--print-hits", action="store_true", help="Print routed pages + evidence JSON."
+    )
     p_paper.add_argument("--print-hit-blocks", type=int, default=10)
     p_paper.set_defaults(func=_cmd_paper_pdf)
 
     args = parser.parse_args(argv)
     return int(args.func(args))
-

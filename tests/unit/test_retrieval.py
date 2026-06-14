@@ -113,7 +113,9 @@ def test_score_confidence_high_medium_low():
 def test_retrieve_empty_when_allowed_doc_ids_exclude_all():
     llm = FakeLLMClient()
     doc = Document(doc_id="d1")
-    blocks = [Block(block_id="b1", doc_id="d1", type="paragraph", text="alpha beta gamma delta epsilon.")]
+    blocks = [
+        Block(block_id="b1", doc_id="d1", type="paragraph", text="alpha beta gamma delta epsilon.")
+    ]
     idx = RAGNavIndex.build(
         documents=[doc],
         blocks=blocks,
@@ -148,8 +150,7 @@ def test_retrieve_squad_like_passage_high_confidence():
         documents=[doc],
         blocks=[noise, gold],
         llm=llm,
-        use_sentence_transformers=True,
-        vector_model="all-MiniLM-L6-v2",
+        use_sentence_transformers=False,
         embed_batch_size=8,
     )
     ret = RAGNavRetriever(index=idx, llm=llm)

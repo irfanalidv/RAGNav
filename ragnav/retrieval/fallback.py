@@ -93,7 +93,9 @@ class QueryFallback:
                     )
 
         improved = best.top_score > initial.top_score
-        return FallbackResult(best, len(queries_tried), queries_tried, winning_query, improved=improved)
+        return FallbackResult(
+            best, len(queries_tried), queries_tried, winning_query, improved=improved
+        )
 
     def _generate_variations(self, query: str, *, n: int = 2) -> list[str]:
         prompt = self._config.variation_prompt.format(query=query, n=n)

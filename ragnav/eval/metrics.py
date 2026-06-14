@@ -75,4 +75,3 @@ def score_retrieval(cases: list[EvalCase], retrieved: list[list[Block]]) -> Retr
         substring_hit_rate=substring_hits / n,
         avg_blocks_returned=total_blocks / n,
     )
-

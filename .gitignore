@@ -5,6 +5,8 @@ __pycache__/
 # Virtualenvs
 .venv/
 venv/
+.venv_pypi/
+.venv*/
 
 # Build artifacts
 build/
@@ -15,6 +17,9 @@ dist/
 .ruff_cache/
 .pytest_cache/
 .mypy_cache/
+.coverage
+htmlcov/
+*.code-workspace
 
 # Secrets (never commit)
 .env

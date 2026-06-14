@@ -95,4 +95,3 @@ class SimpleInjectionPolicy:
             kept.append(b)
 
         return PolicyResult(kept=kept, dropped_block_ids=dropped, sanitized_block_ids=sanitized)
-

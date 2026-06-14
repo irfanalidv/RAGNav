@@ -151,7 +151,9 @@ def main() -> None:
         tq_ms = (time.perf_counter() - tq) * 1000.0
         gold_ids = _gold_block_ids_for_row(row, blocks)
         top = res.blocks[0] if res.blocks else None
-        snippet = (top.text[:160] + "…") if top and len(top.text) > 160 else (top.text if top else "")
+        snippet = (
+            (top.text[:160] + "…") if top and len(top.text) > 160 else (top.text if top else "")
+        )
         hit = top is not None and any(a.lower() in top.text.lower() for a in texts if a)
         mark = "✓" if hit else "✗"
         in_top5 = bool(gold_ids & {b.block_id for b in res.blocks[:5]})

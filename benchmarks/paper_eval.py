@@ -17,11 +17,17 @@ def _build_synthetic_paper_index() -> tuple[RAGNavRetriever, dict[str, Block]]:
     Goal: measure whether `retrieve_paper(... follow_refs=True ...)` can pull
     referenced evidence blocks even when page routing would otherwise omit them.
     """
-    doc = Document(doc_id="pdf:synthetic_paper.pdf", source="synthetic_paper.pdf", metadata={"type": "pdf", "mode": "paper"})
+    doc = Document(
+        doc_id="pdf:synthetic_paper.pdf",
+        source="synthetic_paper.pdf",
+        metadata={"type": "pdf", "mode": "paper"},
+    )
 
     blocks: list[Block] = []
 
-    def b(i: int, *, page: int, text: str, typ: str = "paragraph", meta: dict | None = None) -> Block:
+    def b(
+        i: int, *, page: int, text: str, typ: str = "paragraph", meta: dict | None = None
+    ) -> Block:
         return Block(
             block_id=f"{doc.doc_id}#b{i}",
             doc_id=doc.doc_id,
@@ -33,14 +39,35 @@ def _build_synthetic_paper_index() -> tuple[RAGNavRetriever, dict[str, Block]]:
 
     # Page 1: mentions figure/table/appendix/section.
     blocks.append(b(0, page=1, typ="heading", text="1 Introduction", meta={"section_number": "1"}))
-    blocks.append(b(1, page=1, text="We summarize results in Figure 1 and Table 2. See Appendix A for details."))
+    blocks.append(
+        b(
+            1,
+            page=1,
+            text="We summarize results in Figure 1 and Table 2. See Appendix A for details.",
+        )
+    )
     blocks.append(b(2, page=1, typ="heading", text="2 Methods", meta={"section_number": "2"}))
     blocks.append(b(3, page=1, text="Our approach is described in Section 2.1."))
 
     # Page 2: captions / targets
     blocks.append(b(4, page=2, typ="heading", text="2.1 Model", meta={"section_number": "2.1"}))
-    blocks.append(b(5, page=2, text="Figure 1: Accuracy improves when following cross-references.", meta={"caption_kind": "figure", "caption_number": "1"}))
-    blocks.append(b(6, page=2, typ="table", text="Table 2: Ablation results across datasets.", meta={"caption_kind": "table", "caption_number": "2"}))
+    blocks.append(
+        b(
+            5,
+            page=2,
+            text="Figure 1: Accuracy improves when following cross-references.",
+            meta={"caption_kind": "figure", "caption_number": "1"},
+        )
+    )
+    blocks.append(
+        b(
+            6,
+            page=2,
+            typ="table",
+            text="Table 2: Ablation results across datasets.",
+            meta={"caption_kind": "table", "caption_number": "2"},
+        )
+    )
 
     # Page 3: appendix
     blocks.append(b(7, page=3, typ="heading", text="Appendix A Additional Details"))
@@ -50,16 +77,38 @@ def _build_synthetic_paper_index() -> tuple[RAGNavRetriever, dict[str, Block]]:
 
     # Cross-reference edges: from mentions -> targets
     edges = [
-        Edge(src=by_id[f"{doc.doc_id}#b1"].block_id, dst=by_id[f"{doc.doc_id}#b5"].block_id, type="link_to", metadata={"ref_kind": "figure", "ref": "1"}),
-        Edge(src=by_id[f"{doc.doc_id}#b1"].block_id, dst=by_id[f"{doc.doc_id}#b6"].block_id, type="link_to", metadata={"ref_kind": "table", "ref": "2"}),
+        Edge(
+            src=by_id[f"{doc.doc_id}#b1"].block_id,
+            dst=by_id[f"{doc.doc_id}#b5"].block_id,
+            type="link_to",
+            metadata={"ref_kind": "figure", "ref": "1"},
+        ),
+        Edge(
+            src=by_id[f"{doc.doc_id}#b1"].block_id,
+            dst=by_id[f"{doc.doc_id}#b6"].block_id,
+            type="link_to",
+            metadata={"ref_kind": "table", "ref": "2"},
+        ),
         # Point directly at an evidence-bearing appendix paragraph (not only the heading),
         # so we can measure "did we fetch the actual content?".
-        Edge(src=by_id[f"{doc.doc_id}#b1"].block_id, dst=by_id[f"{doc.doc_id}#b8"].block_id, type="link_to", metadata={"ref_kind": "appendix", "ref": "A"}),
-        Edge(src=by_id[f"{doc.doc_id}#b3"].block_id, dst=by_id[f"{doc.doc_id}#b4"].block_id, type="link_to", metadata={"ref_kind": "section", "ref": "2.1"}),
+        Edge(
+            src=by_id[f"{doc.doc_id}#b1"].block_id,
+            dst=by_id[f"{doc.doc_id}#b8"].block_id,
+            type="link_to",
+            metadata={"ref_kind": "appendix", "ref": "A"},
+        ),
+        Edge(
+            src=by_id[f"{doc.doc_id}#b3"].block_id,
+            dst=by_id[f"{doc.doc_id}#b4"].block_id,
+            type="link_to",
+            metadata={"ref_kind": "section", "ref": "2.1"},
+        ),
     ]
 
     fake = FakeLLMClient()
-    idx = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=fake, build_vectors=False, edges=edges)
+    idx = RAGNavIndex.build(
+        documents=[doc], blocks=blocks, llm=fake, build_vectors=False, edges=edges
+    )
     r = RAGNavRetriever(index=idx, llm=fake)
     return r, by_id
 
@@ -140,4 +189,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

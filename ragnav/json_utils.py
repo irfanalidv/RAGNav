@@ -48,4 +48,3 @@ def extract_json(text: str) -> Any:
 
     snippet = raw[start : end + 1].strip()
     return json.loads(snippet)
-

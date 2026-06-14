@@ -79,9 +79,11 @@ def agentic_retrieve_then_answer(
 
     # fallback: force final answer
     memory.append(
-        {"role": "user", "content": 'Return final answer JSON now: {"action":"answer","answer":"..."}'},
+        {
+            "role": "user",
+            "content": 'Return final answer JSON now: {"action":"answer","answer":"..."}',
+        },
     )
     final_raw = llm.chat(messages=memory, temperature=0)
     final = extract_json(final_raw)
     return str(final.get("answer") if isinstance(final, dict) else final_raw).strip()
-

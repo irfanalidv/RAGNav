@@ -28,4 +28,3 @@ class EvalCase:
 class EvalSuite:
     suite_id: str
     cases: list[EvalCase]
-

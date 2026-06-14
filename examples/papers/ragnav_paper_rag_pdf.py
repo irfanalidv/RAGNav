@@ -23,13 +23,17 @@ def main(argv: list[str] | None = None) -> None:
     """
     parser = argparse.ArgumentParser(description="RAGNav paper-mode RAG over a PDF URL.")
     parser.add_argument("--pdf-url", default=PDF_URL, help="PDF URL (e.g. arXiv).")
-    parser.add_argument("--pdf-name", default="paper.pdf", help="Local filename used for doc_id + caching.")
+    parser.add_argument(
+        "--pdf-name", default="paper.pdf", help="Local filename used for doc_id + caching."
+    )
     parser.add_argument(
         "--query",
         default="What experiments were conducted? If a figure summarizes results, cite it.",
         help="Question to answer from retrieved evidence.",
     )
-    parser.add_argument("--max-pages", type=int, default=25, help="Max pages to ingest from the PDF.")
+    parser.add_argument(
+        "--max-pages", type=int, default=25, help="Max pages to ingest from the PDF."
+    )
     args = parser.parse_args(argv)
 
     load_env()
@@ -77,4 +81,3 @@ Context:
 
 if __name__ == "__main__":
     main()
-

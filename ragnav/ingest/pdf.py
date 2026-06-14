@@ -35,7 +35,9 @@ def ingest_pdf_bytes(
     try:
         import fitz  # PyMuPDF
     except Exception as e:
-        raise RAGNavIngestError("Missing optional dependency `pymupdf`. Install with: pip install -e \".[pdf]\"") from e
+        raise RAGNavIngestError(
+            'Missing optional dependency `pymupdf`. Install with: pip install -e ".[pdf]"'
+        ) from e
 
     opts = opts or PdfIngestOptions()
     if opts.paper_mode:
@@ -95,7 +97,9 @@ def ingest_pdf_bytes_paper(
     try:
         import fitz  # PyMuPDF
     except Exception as e:
-        raise RAGNavIngestError("Missing optional dependency `pymupdf`. Install with: pip install -e \".[pdf]\"") from e
+        raise RAGNavIngestError(
+            'Missing optional dependency `pymupdf`. Install with: pip install -e ".[pdf]"'
+        ) from e
 
     opts = opts or PdfIngestOptions()
     doc_meta: dict[str, Any] = {"type": "pdf", "mode": "paper"}
@@ -202,7 +206,14 @@ def ingest_pdf_bytes_paper(
                 else:
                     tab_by_num[num] = b.block_id
                 if prev_block_id:
-                    edges.append(Edge(src=prev_block_id, dst=b.block_id, type="next", metadata={"page": page_num}))
+                    edges.append(
+                        Edge(
+                            src=prev_block_id,
+                            dst=b.block_id,
+                            type="next",
+                            metadata={"page": page_num},
+                        )
+                    )
                 prev_block_id = b.block_id
                 i = j
                 continue
@@ -235,7 +246,14 @@ def ingest_pdf_bytes_paper(
                         app_by_letter[parts[1].upper()] = b.block_id
 
                 if prev_block_id:
-                    edges.append(Edge(src=prev_block_id, dst=b.block_id, type="next", metadata={"page": page_num}))
+                    edges.append(
+                        Edge(
+                            src=prev_block_id,
+                            dst=b.block_id,
+                            type="next",
+                            metadata={"page": page_num},
+                        )
+                    )
                 prev_block_id = b.block_id
                 i += 1
                 continue
@@ -267,7 +285,11 @@ def ingest_pdf_bytes_paper(
                 heading_path=current_heading_path(),
             )
             if prev_block_id:
-                edges.append(Edge(src=prev_block_id, dst=b.block_id, type="next", metadata={"page": page_num}))
+                edges.append(
+                    Edge(
+                        src=prev_block_id, dst=b.block_id, type="next", metadata={"page": page_num}
+                    )
+                )
             prev_block_id = b.block_id
             i = j + 1 if j < len(lines) and not lines[j].strip() else j
 
@@ -279,23 +301,49 @@ def ingest_pdf_bytes_paper(
         for num in paper.find_fig_mentions(txt):
             dst = fig_by_num.get(num)
             if dst and dst in by_id and dst != b.block_id:
-                edges.append(Edge(src=b.block_id, dst=dst, type="link_to", metadata={"ref_kind": "figure", "ref": num}))
+                edges.append(
+                    Edge(
+                        src=b.block_id,
+                        dst=dst,
+                        type="link_to",
+                        metadata={"ref_kind": "figure", "ref": num},
+                    )
+                )
         # Tables
         for num in paper.find_tab_mentions(txt):
             dst = tab_by_num.get(num)
             if dst and dst in by_id and dst != b.block_id:
-                edges.append(Edge(src=b.block_id, dst=dst, type="link_to", metadata={"ref_kind": "table", "ref": num}))
+                edges.append(
+                    Edge(
+                        src=b.block_id,
+                        dst=dst,
+                        type="link_to",
+                        metadata={"ref_kind": "table", "ref": num},
+                    )
+                )
         # Sections
         for sec in paper.find_sec_mentions(txt):
             dst = sec_by_num.get(sec)
             if dst and dst in by_id and dst != b.block_id:
-                edges.append(Edge(src=b.block_id, dst=dst, type="link_to", metadata={"ref_kind": "section", "ref": sec}))
+                edges.append(
+                    Edge(
+                        src=b.block_id,
+                        dst=dst,
+                        type="link_to",
+                        metadata={"ref_kind": "section", "ref": sec},
+                    )
+                )
         # Appendices
         for letter in paper.find_app_mentions(txt):
             dst = app_by_letter.get(letter)
             if dst and dst in by_id and dst != b.block_id:
                 edges.append(
-                    Edge(src=b.block_id, dst=dst, type="link_to", metadata={"ref_kind": "appendix", "ref": letter})
+                    Edge(
+                        src=b.block_id,
+                        dst=dst,
+                        type="link_to",
+                        metadata={"ref_kind": "appendix", "ref": letter},
+                    )
                 )
 
     return doc, blocks, edges
@@ -322,7 +370,9 @@ def ingest_pdf_file_paper(
 ) -> tuple[Document, list[Block], list[Edge]]:
     with open(path, "rb") as f:
         data = f.read()
-    return ingest_pdf_bytes_paper(data, name=name or path.split("/")[-1], metadata=metadata, opts=opts)
+    return ingest_pdf_bytes_paper(
+        data, name=name or path.split("/")[-1], metadata=metadata, opts=opts
+    )
 
 
 def ingest_pdf_bytes_graph(
@@ -371,5 +421,6 @@ def ingest_pdf_file_graph(
 ) -> BlockGraph:
     with open(path, "rb") as f:
         data = f.read()
-    return ingest_pdf_bytes_graph(data, name=name or path.split("/")[-1], metadata=metadata, opts=opts)
-
+    return ingest_pdf_bytes_graph(
+        data, name=name or path.split("/")[-1], metadata=metadata, opts=opts
+    )

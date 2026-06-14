@@ -8,6 +8,7 @@ from ..cost import CostTracker, estimate_tokens_from_text
 from ..exceptions import RAGNavLLMError
 from .base import LLMClient
 
+
 @dataclass(frozen=True)
 class MistralConfig:
     api_key_env: str = "MISTRAL_API_KEY"
@@ -23,7 +24,9 @@ class MistralClient(LLMClient):
       pip install -e ".[mistral]"
     """
 
-    def __init__(self, cfg: Optional[MistralConfig] = None, cost_tracker: Optional[CostTracker] = None):
+    def __init__(
+        self, cfg: Optional[MistralConfig] = None, cost_tracker: Optional[CostTracker] = None
+    ):
         try:
             from dotenv import load_dotenv
         except Exception:
@@ -36,7 +39,7 @@ class MistralClient(LLMClient):
             from mistralai import Mistral
         except Exception as e:
             raise RAGNavLLMError(
-                "Missing optional dependency `mistralai`. Install with: pip install -e \".[mistral]\""
+                'Missing optional dependency `mistralai`. Install with: pip install -e ".[mistral]"'
             ) from e
 
         self.cfg = cfg or MistralConfig()
@@ -79,4 +82,3 @@ class MistralClient(LLMClient):
     def usage_from_response(self, response_obj: Any) -> dict[str, Any]:
         # Placeholder for future: standardized token accounting.
         return {}
-

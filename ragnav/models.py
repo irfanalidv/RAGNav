@@ -58,4 +58,3 @@ class RetrievalResult:
     confidence: ConfidenceLevel = ConfidenceLevel.LOW
     top_score: float = 0.0
     trace: dict[str, Any] = field(default_factory=dict)
-

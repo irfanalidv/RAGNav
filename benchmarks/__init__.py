@@ -18,6 +18,7 @@ It also provides small helpers for comparing:
 - **PageIndex-style baselines** (LLM selects node_ids from a structure index)
 """
 
+
 def offline_smoke_main() -> None:
     # Lazy import to avoid runpy warnings when executing benchmark modules.
     from .offline_smoke import main
@@ -87,6 +88,7 @@ def citation_eval_main() -> None:
 
     main()
 
+
 __all__ = [
     "offline_smoke_main",
     "regression_main",
@@ -99,4 +101,3 @@ __all__ = [
     "paper_pdf_suite_main",
     "citation_eval_main",
 ]
-

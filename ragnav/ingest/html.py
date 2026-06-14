@@ -36,7 +36,7 @@ def ingest_html_string_graph(
         from bs4 import BeautifulSoup
     except Exception as e:
         raise RAGNavIngestError(
-            "Missing optional dependency `beautifulsoup4`. Install with: pip install -e \".[messy]\""
+            'Missing optional dependency `beautifulsoup4`. Install with: pip install -e ".[messy]"'
         ) from e
 
     opts = opts or HtmlIngestOptions()
@@ -90,8 +90,11 @@ def ingest_html_string_graph(
 
     # link edges (href is stored; dst unknown without resolution)
     for src_id, href in links:
-        g.add_edge(Edge(src=src_id, dst=f"{doc.doc_id}#href:{href}", type="link_to", metadata={"href": href}))
+        g.add_edge(
+            Edge(
+                src=src_id, dst=f"{doc.doc_id}#href:{href}", type="link_to", metadata={"href": href}
+            )
+        )
 
     g.build_indexes()
     return g
-

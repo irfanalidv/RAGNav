@@ -108,4 +108,3 @@ def ingest_eml_bytes_graph(
 
     g.build_indexes()
     return g
-

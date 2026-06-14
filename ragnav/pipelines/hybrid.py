@@ -89,4 +89,3 @@ Context:
 {context}
 """
     return llm.chat(messages=[{"role": "user", "content": prompt}], temperature=0)
-

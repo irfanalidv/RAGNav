@@ -103,7 +103,9 @@ class RAGNavRetriever:
             "query": query,
             "allowed_doc_ids": sorted(list(allowed_doc_ids)) if allowed_doc_ids else None,
             "allowed_doc_pages": (
-                {k: sorted(list(v)) for k, v in allowed_doc_pages.items()} if allowed_doc_pages else None
+                {k: sorted(list(v)) for k, v in allowed_doc_pages.items()}
+                if allowed_doc_pages
+                else None
             ),
             "required_doc_metadata": required_doc_metadata,
             "principal": principal,
@@ -123,7 +125,9 @@ class RAGNavRetriever:
         if retrieval_cache is not None:
             cached_ids = retrieval_cache.get(cache_payload)
             if cached_ids:
-                blocks = [self.index.blocks_by_id[b] for b in cached_ids if b in self.index.blocks_by_id]
+                blocks = [
+                    self.index.blocks_by_id[b] for b in cached_ids if b in self.index.blocks_by_id
+                ]
                 return RetrievalResult(
                     query=query,
                     blocks=blocks,
@@ -150,9 +154,7 @@ class RAGNavRetriever:
                 query, query_embedding=qemb, k=k_vec, allowed_doc_ids=allowed_doc_ids
             )
 
-        merged = _fuse_retrieval_rankings(
-            bm, ve, fusion=fusion, w_bm25=w_bm25, w_vec=w_vec
-        )
+        merged = _fuse_retrieval_rankings(bm, ve, fusion=fusion, w_bm25=w_bm25, w_vec=w_vec)
 
         filtered = []
         for b, s in merged:
@@ -209,7 +211,9 @@ class RAGNavRetriever:
 
         expanded: list[Block] = seeds
         if expand_structure:
-            expanded = _expand_structure(self.index.blocks_by_id, self.index.blocks_by_parent, expanded)
+            expanded = _expand_structure(
+                self.index.blocks_by_id, self.index.blocks_by_parent, expanded
+            )
         if expand_graph and self.index.edges:
             types = graph_edge_types or {"next", "reply_to", "same_thread", "quote_of"}
             expanded = _expand_graph(
@@ -237,7 +241,9 @@ class RAGNavRetriever:
             "query": query,
             "allowed_doc_ids": sorted(list(allowed_doc_ids)) if allowed_doc_ids else None,
             "allowed_doc_pages": (
-                {k: sorted(list(v)) for k, v in allowed_doc_pages.items()} if allowed_doc_pages else None
+                {k: sorted(list(v)) for k, v in allowed_doc_pages.items()}
+                if allowed_doc_pages
+                else None
             ),
             "required_doc_metadata": required_doc_metadata,
             "principal": principal,
@@ -317,10 +323,14 @@ class RAGNavRetriever:
             )
         return out
 
-    def route_documents_by_semantics(self, query: str, **kwargs: Any) -> list[tuple[str, float, int]]:
+    def route_documents_by_semantics(
+        self, query: str, **kwargs: Any
+    ) -> list[tuple[str, float, int]]:
         return routing.route_documents_by_semantics(self.index, self.llm, query, **kwargs)
 
-    def route_pages_by_semantics(self, query: str, **kwargs: Any) -> list[tuple[str, int, float, int]]:
+    def route_pages_by_semantics(
+        self, query: str, **kwargs: Any
+    ) -> list[tuple[str, int, float, int]]:
         return routing.route_pages_by_semantics(self.index, self.llm, query, **kwargs)
 
     def retrieve_paper(
@@ -347,7 +357,9 @@ class RAGNavRetriever:
             self.index, self.llm, query, allowed_doc_ids=allowed_doc_ids, top_pages=top_pages
         )
         if not ranked_pages:
-            res = self.retrieve(query, allowed_doc_ids=allowed_doc_ids, use_vectors=use_vectors, k_final=k_final)
+            res = self.retrieve(
+                query, allowed_doc_ids=allowed_doc_ids, use_vectors=use_vectors, k_final=k_final
+            )
             return _with_trace(res, {"mode": "paper", "fallback": True})
 
         allowed_doc_pages: dict[str, set[int]] = {}

@@ -11,7 +11,11 @@ from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
 
 
 def _synthetic_multihop_blocks() -> tuple[Document, list[Block]]:
-    doc = Document(doc_id="pdf:entity_paper.pdf", source="entity_paper.pdf", metadata={"type": "pdf", "mode": "paper"})
+    doc = Document(
+        doc_id="pdf:entity_paper.pdf",
+        source="entity_paper.pdf",
+        metadata={"type": "pdf", "mode": "paper"},
+    )
 
     blocks: list[Block] = []
 
@@ -104,4 +108,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

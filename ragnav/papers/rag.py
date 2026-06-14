@@ -150,7 +150,9 @@ Context:
 """
         return self.llm.chat(messages=[{"role": "user", "content": prompt}], temperature=0)
 
-    def answer_cited(self, query: str, *, cfg: PaperRAGConfig = PaperRAGConfig(), **kwargs: Any) -> str:
+    def answer_cited(
+        self, query: str, *, cfg: PaperRAGConfig = PaperRAGConfig(), **kwargs: Any
+    ) -> str:
         """
         Answer with inline citations `[[block_id]]` for every sentence.
         """
@@ -162,4 +164,3 @@ Context:
             temperature=0,
         )
         return cited.answer
-

@@ -23,4 +23,3 @@ python3 examples/basic/ragnav_rag_simple.py
 - `examples/agentic/ragnav_agentic_retrieval_pdf.py`
 - `examples/papers/ragnav_vectorless_rag_pdf.py`
 - `examples/graphs/ragnav_chat_graph_retrieval.py`
-

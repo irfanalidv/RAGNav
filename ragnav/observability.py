@@ -37,6 +37,7 @@ class _Span:
 
     def __exit__(self, exc_type, exc, tb):
         dt_ms = (time.perf_counter() - self._t0) * 1000.0
-        self._trace.timings_ms[self._name] = float(self._trace.timings_ms.get(self._name, 0.0) + dt_ms)
+        self._trace.timings_ms[self._name] = float(
+            self._trace.timings_ms.get(self._name, 0.0) + dt_ms
+        )
         return False
-

@@ -106,12 +106,16 @@ def _parent_chain(by_id: dict[str, Block], block: Block, *, max_hops: int = 8) -
     return out
 
 
-def _children(by_parent: dict[str, list[Block]], block: Block, *, max_children: int = 8) -> list[Block]:
+def _children(
+    by_parent: dict[str, list[Block]], block: Block, *, max_children: int = 8
+) -> list[Block]:
     kids = by_parent.get(block.block_id, [])
     return kids[:max_children]
 
 
-def _expand_structure(by_id: dict[str, Block], by_parent: dict[str, list[Block]], seeds: list[Block]) -> list[Block]:
+def _expand_structure(
+    by_id: dict[str, Block], by_parent: dict[str, list[Block]], seeds: list[Block]
+) -> list[Block]:
     """
     Deterministic expansion to make context coherent:
     - parent chain (section headers)
@@ -196,12 +200,15 @@ def _allowed_by_constraints(
                 return False
 
     if principal:
-        doc_acl = (doc.metadata.get("acl") if doc else None) or []
-        blk_acl = block.metadata.get("acl") or []
-        if doc_acl or blk_acl:
-            allowed = set([str(x) for x in doc_acl] + [str(x) for x in blk_acl])
-            if principal not in allowed:
-                return False
+        doc_acl = [str(x) for x in (doc.metadata.get("acl") if doc else None) or []]
+        blk_acl = [str(x) for x in block.metadata.get("acl") or []]
+        # Layered ACLs are AND-ed. A non-empty ACL at either level must include the
+        # principal. Block-level ACLs narrow access within a document and must never
+        # be widened by the document-level ACL. Empty/absent ACL = no restriction.
+        if doc_acl and principal not in doc_acl:
+            return False
+        if blk_acl and principal not in blk_acl:
+            return False
 
     return True
 

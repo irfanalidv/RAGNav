@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragnav"
-version = "0.3.0"
+version = "0.4.0"
 description = "Hybrid structure-aware retrieval — BM25 + embeddings + document graph expansion. Runs fully offline, no API key required."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -78,6 +78,7 @@ dev = [
   "pillow>=10.0.0",
   "black>=24.0.0",
   "ruff>=0.6.0",
+  "mypy>=1.10.0",
   "build>=1.2.0",
   "twine>=5.0.0",
   "pytest>=8.0.0",
@@ -91,6 +92,17 @@ ragnav = "ragnav.cli:main"
 
 [tool.ruff]
 line-length = 100
+exclude = [
+  ".git",
+  ".venv_pypi",
+  "build",
+  "dist",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"benchmarks/regression.py" = ["E402"]
+"examples/**/*.py" = ["E402"]
+"cookbook/*.ipynb" = ["E402"]
 
 [tool.black]
 line-length = 100
@@ -105,3 +117,19 @@ ragnav = ["py.typed"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["ragnav*"]
+
+[tool.mypy]
+python_version = "3.9"
+files = ["ragnav"]
+ignore_missing_imports = true
+follow_imports = "skip"
+warn_unused_ignores = false
+check_untyped_defs = false
+
+[tool.coverage.run]
+source = ["ragnav"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 65

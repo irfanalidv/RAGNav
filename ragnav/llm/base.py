@@ -25,4 +25,3 @@ class LLMClient(Protocol):
         inputs: Iterable[str],
         model: Optional[str] = None,
     ) -> list[list[float]]: ...
-

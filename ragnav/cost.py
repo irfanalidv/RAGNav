@@ -44,15 +44,12 @@ class CostReport:
 
     def summary(self) -> str:
         budget_str = "/%.4f" % self.budget_usd if self.budget_usd is not None else ""
-        return (
-            "calls=%d  tokens=%din+%dout  cost=$%.5f%s"
-            % (
-                self.calls,
-                self.total_input_tokens,
-                self.total_output_tokens,
-                self.total_cost_usd,
-                budget_str,
-            )
+        return "calls=%d  tokens=%din+%dout  cost=$%.5f%s" % (
+            self.calls,
+            self.total_input_tokens,
+            self.total_output_tokens,
+            self.total_cost_usd,
+            budget_str,
         )
 
 

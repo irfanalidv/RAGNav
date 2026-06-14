@@ -53,7 +53,9 @@ class EntityGraphRetriever:
         scored.sort(key=lambda x: x[1], reverse=True)
         return [eid for eid, _ in scored[: cfg.max_entities]]
 
-    def retrieve(self, query: str, *, cfg: EntityGraphRetrieverConfig = EntityGraphRetrieverConfig()) -> dict[str, Any]:
+    def retrieve(
+        self, query: str, *, cfg: EntityGraphRetrieverConfig = EntityGraphRetrieverConfig()
+    ) -> dict[str, Any]:
         seeds = self.match_entities(query, cfg=cfg)
         visited_entities: set[str] = set(seeds)
         evidence_ids: list[str] = []
@@ -98,4 +100,3 @@ class EntityGraphRetriever:
         k_final: int = 10,
     ):
         return rag_retriever.retrieve(query, allowed_doc_ids=allowed_doc_ids, k_final=k_final)
-

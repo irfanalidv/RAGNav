@@ -19,11 +19,17 @@ def _paper_excerpt_blocks() -> tuple[Document, list[Block]]:
 
     This is intentionally not a full paper; it's a concentrated stress test for extraction.
     """
-    doc = Document(doc_id="pdf:excerpt_paper.pdf", source="excerpt_paper.pdf", metadata={"type": "pdf", "mode": "paper"})
+    doc = Document(
+        doc_id="pdf:excerpt_paper.pdf",
+        source="excerpt_paper.pdf",
+        metadata={"type": "pdf", "mode": "paper"},
+    )
 
     blocks: list[Block] = []
 
-    def b(i: int, *, page: int, heading_path: tuple[str, ...], text: str, typ: str = "paragraph") -> Block:
+    def b(
+        i: int, *, page: int, heading_path: tuple[str, ...], text: str, typ: str = "paragraph"
+    ) -> Block:
         return Block(
             block_id=f"{doc.doc_id}#b{i}",
             doc_id=doc.doc_id,
@@ -33,7 +39,9 @@ def _paper_excerpt_blocks() -> tuple[Document, list[Block]]:
             anchors={"page": page, "line_start": 1, "line_end": 1},
         )
 
-    blocks.append(b(0, page=1, typ="heading", heading_path=("Introduction",), text="1 Introduction"))
+    blocks.append(
+        b(0, page=1, typ="heading", heading_path=("Introduction",), text="1 Introduction")
+    )
     blocks.append(
         b(
             1,
@@ -120,4 +128,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

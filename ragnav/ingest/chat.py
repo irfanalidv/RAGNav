@@ -89,9 +89,12 @@ def ingest_slack_messages_graph(
         thread_ts = str(thread_ts)
         root_id = id_by_ts.get(thread_ts)
         if root_id and root_id != b.block_id:
-            g.add_edge(Edge(src=b.block_id, dst=root_id, type="reply_to", metadata={"thread_ts": thread_ts}))
+            g.add_edge(
+                Edge(
+                    src=b.block_id, dst=root_id, type="reply_to", metadata={"thread_ts": thread_ts}
+                )
+            )
         g.add_edge(Edge(src=b.block_id, dst=f"{doc.doc_id}#thread:{thread_ts}", type="same_thread"))
 
     g.build_indexes()
     return g
-
