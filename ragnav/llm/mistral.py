@@ -58,7 +58,7 @@ class MistralClient(LLMClient):
             try:
                 from mistralai.client import Mistral
             except ImportError:
-                from mistralai import Mistral  # type: ignore[no-redef,attr-defined]
+                from mistralai import Mistral  # type: ignore[no-redef,attr-defined,unused-ignore]
         except Exception as e:
             raise RAGNavLLMError(
                 'Missing optional dependency `mistralai`. Install with: pip install -e ".[mistral]"'

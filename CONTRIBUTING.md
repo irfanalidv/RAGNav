@@ -44,6 +44,11 @@ pytest tests/unit/ -q
 ## Code style
 
 - Format and lint with **Ruff** (`ruff format .`, `ruff check .`), line length **100** (see `pyproject.toml`).
+- Type-check with **mypy** (`mypy ragnav`). The config uses `disallow_untyped_defs`, so new
+  functions need full annotations.
+- CI (`.github/workflows/ci.yml`) runs `ruff check .`, `ruff format --check .`, `mypy ragnav` and
+  `pytest --cov=ragnav --cov-fail-under=85` on Python 3.10-3.13; all are blocking.
+  `pre-commit install` runs ruff and the hygiene hooks locally.
 - Docstrings: explain **why** something exists or behaves a certain way, not a restatement of the signature or obvious control flow.
 
 ## Release checklist
@@ -65,8 +70,8 @@ grep -rn "except:" ragnav/ --include="*.py"
 # 4. No secrets
 grep -rn "OPENAI_API_KEY\|sk-\|password\s*=" ragnav/ --include="*.py"
 
-# 5. Ruff clean
-ruff check . && ruff format --check .
+# 5. Ruff + mypy clean
+ruff check . && ruff format --check . && mypy ragnav
 
 # 6. Build
 rm -rf dist/ build/

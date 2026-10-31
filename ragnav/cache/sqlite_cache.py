@@ -132,7 +132,7 @@ class EmbeddingCache:
                 shape = tuple(meta["shape"])
                 dtype = np.dtype(meta["dtype"])
                 arr = np.frombuffer(blob, dtype=dtype).reshape(shape)
-                out[i] = arr.astype(np.float64).tolist()
+                out[i] = [float(x) for x in arr.astype(np.float64).ravel()]
             except (json.JSONDecodeError, KeyError, ValueError, OSError) as e:
                 raise RAGNavCacheError(
                     "Cached embedding payload is unreadable; delete the cache entry or remove the "
