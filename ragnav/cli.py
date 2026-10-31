@@ -59,7 +59,6 @@ def _cmd_hybrid_pdf(args: argparse.Namespace) -> int:
         cfg=cfg,
         cache_path=args.cache_path,
         embedding_cache=ecache,
-        retrieval_cache=rcache,
     )
     if args.print_hits:
         hits = retriever.retrieve_raw(
@@ -71,6 +70,7 @@ def _cmd_hybrid_pdf(args: argparse.Namespace) -> int:
             w_bm25=cfg.w_bm25,
             w_vec=cfg.w_vec,
             use_vectors=True,
+            retrieval_cache=rcache,
         )
         print(json.dumps(hits, indent=2))
     ans = hybrid_answer(

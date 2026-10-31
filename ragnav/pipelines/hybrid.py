@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -36,7 +37,17 @@ def hybrid_rag_pdf_url(
     Hybrid RAG over a PDF URL:
     - Candidate generation: BM25 + embeddings
     - Deterministic structure expansion
+
+    ``retrieval_cache`` is deprecated and ignored: this function only builds the index. Pass the
+    cache to ``hybrid_answer`` or ``RAGNavRetriever.retrieve`` instead.
     """
+    if retrieval_cache is not None:
+        warnings.warn(
+            "hybrid_rag_pdf_url(retrieval_cache=...) is ignored and will be removed; pass "
+            "retrieval_cache to hybrid_answer() or RAGNavRetriever.retrieve() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
     load_env()
     pdf_bytes = download_pdf(pdf_url, out_path=cache_path)
     pdf_name = Path(str(cache_path)).name if cache_path is not None else "document.pdf"

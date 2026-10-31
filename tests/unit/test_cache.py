@@ -53,3 +53,20 @@ def test_ttl_expiry(tmp_path):
     kv.set("x", b"1")
     time.sleep(0.02)
     assert kv.get("x") is None
+
+
+def test_retrieval_cache_entry_roundtrip_and_legacy_format(tmp_path):
+    kv = SqliteKV(SqliteCacheConfig(db_path=str(tmp_path / "r.sqlite3")))
+    rc = RetrievalCache(kv)
+    payload = {"query": "q", "k": 2}
+    rc.set(payload, ["a", "b"], confidence="high", top_score=0.9)
+    entry = rc.get_entry(payload)
+    assert entry is not None
+    assert entry.block_ids == ["a", "b"]
+    assert entry.confidence == "high"
+    assert entry.top_score == 0.9
+    assert rc.get(payload) == ["a", "b"]
+
+    kv.set(rc._payload_key(payload), b'["a"]')  # format written by ragnav < 0.6.1
+    assert rc.get(payload) == ["a"]
+    assert rc.get_entry(payload) is None

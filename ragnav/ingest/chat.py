@@ -33,7 +33,7 @@ def ingest_slack_messages_graph(
     Emits:
       - `next` edges for time order
       - `reply_to` edges within a thread (message -> parent thread root)
-      - `same_thread` edges (message -> thread node)
+      - `same_thread` edges between all messages of a thread, root included
     """
     opts = opts or ChatIngestOptions()
     doc_meta: dict[str, Any] = {"type": "chat", "platform": "slack"}
@@ -83,19 +83,35 @@ def ingest_slack_messages_graph(
         g.add_edge(Edge(src=a.block_id, dst=b.block_id, type="next"))
 
     # thread edges
+    members_by_thread: dict[str, list[str]] = {}
     for b in blocks:
         thread_ts = b.metadata.get("thread_ts")
         if not thread_ts:
             continue
         thread_ts = str(thread_ts)
+        members = members_by_thread.setdefault(thread_ts, [])
         root_id = id_by_ts.get(thread_ts)
+        if root_id and root_id not in members:
+            members.append(root_id)
+        if b.block_id not in members:
+            members.append(b.block_id)
         if root_id and root_id != b.block_id:
             g.add_edge(
                 Edge(
                     src=b.block_id, dst=root_id, type="reply_to", metadata={"thread_ts": thread_ts}
                 )
             )
-        g.add_edge(Edge(src=b.block_id, dst=f"{doc.doc_id}#thread:{thread_ts}", type="same_thread"))
+    # same_thread links every message to the other messages of its thread (root included),
+    # so one hop of graph expansion pulls in the whole conversation.
+    for thread_ts, members in members_by_thread.items():
+        for src in members:
+            for dst in members:
+                if src != dst:
+                    g.add_edge(
+                        Edge(
+                            src=src, dst=dst, type="same_thread", metadata={"thread_ts": thread_ts}
+                        )
+                    )
 
     g.build_indexes()
     return g

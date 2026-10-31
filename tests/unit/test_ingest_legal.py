@@ -36,3 +36,18 @@ Capitalized terms used in this agreement are defined below.
     assert len(paras) == 1
     assert "DEFINITIONS" in paras[0].text
     assert "Capitalized terms" in paras[0].text
+
+
+def test_short_title_stays_first_in_document_order():
+    text = (
+        "THE CONSTITUTION OF NEPAL\n\n"
+        "1. Constitution as the fundamental law: This Constitution is the fundamental law of "
+        "Nepal. Any law inconsistent with it shall be void.\n\n"
+        "2. Sovereignty and state authority: The sovereignty and state authority of Nepal shall "
+        "be vested in the Nepali people.\n"
+    )
+    _doc, blocks, _g = ingest_legal(text, doc_id="c")
+    assert blocks[0].text == "THE CONSTITUTION OF NEPAL"
+    assert blocks[0].heading_path == ()
+    assert blocks[1].type == "heading"
+    assert blocks[1].text.startswith("1. Constitution")

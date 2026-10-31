@@ -95,3 +95,19 @@ def test_ingest_html_only_eml_falls_back_to_first_text_part():
     g = ingest_eml_bytes_graph(msg.as_bytes())
     body = next(b for b in g.blocks.values() if b.block_id.endswith("#body"))
     assert "Only HTML" in body.text
+
+
+def test_same_thread_edges_link_real_messages():
+    messages = [
+        {"ts": "1", "text": "Root message", "thread_ts": "1"},
+        {"ts": "2", "text": "First reply", "thread_ts": "1"},
+        {"ts": "3", "text": "Second reply", "thread_ts": "1"},
+        {"ts": "4", "text": "Unrelated", "user": "u3"},
+    ]
+    g = ingest_slack_messages_graph(messages, name="t.json")
+    ids = set(g.blocks)
+    same = {(e.src, e.dst) for e in g.edges if e.type == "same_thread"}
+    assert same, "expected same_thread edges"
+    assert all(src in ids and dst in ids for src, dst in same)
+    members = {b for b in ids if not b.endswith("m4")}
+    assert {(a, b) for a in members for b in members if a != b} == same

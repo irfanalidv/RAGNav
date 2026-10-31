@@ -150,3 +150,46 @@ def test_retrieve_weighted_fusion_differs_from_rrf():
     )
     assert rrf.blocks[0].block_id == "b1"
     assert weighted.blocks[0].block_id == "b1"
+
+
+def test_retrieval_cache_hit_keeps_original_confidence():
+    llm = FakeLLMClient()
+    idx = _paperish_index(llm)
+    from ragnav.cache.sqlite_cache import RetrievalCache, SqliteCacheConfig, SqliteKV
+
+    cache = RetrievalCache(SqliteKV(SqliteCacheConfig(db_path=":memory:")))
+    ret = RAGNavRetriever(index=idx, llm=llm)
+    first = ret.retrieve("hybrid BM25 dense retrieval", k_final=2, retrieval_cache=cache)
+    second = ret.retrieve("hybrid BM25 dense retrieval", k_final=2, retrieval_cache=cache)
+    assert second.trace.get("cache_hit") is True
+    assert second.confidence == first.confidence
+    assert second.top_score == first.top_score
+
+
+def test_legacy_list_cache_entry_is_recomputed():
+    llm = FakeLLMClient()
+    idx = _paperish_index(llm)
+    from ragnav.cache.sqlite_cache import RetrievalCache, SqliteCacheConfig, SqliteKV
+
+    kv = SqliteKV(SqliteCacheConfig(db_path=":memory:"))
+    cache = RetrievalCache(kv)
+    ret = RAGNavRetriever(index=idx, llm=llm)
+    fresh = ret.retrieve("SQuAD", k_final=2, retrieval_cache=cache)
+    # Overwrite the entry with the pre-0.6.1 format (a bare list of ids, no confidence).
+    key = next(iter(kv._conn.execute("SELECT key FROM kv")))[0]
+    kv.set(key, b'["p1"]')
+    again = ret.retrieve("SQuAD", k_final=2, retrieval_cache=cache)
+    assert again.trace.get("cache_hit") is not True
+    assert again.confidence == fresh.confidence
+
+
+def test_hybrid_rag_pdf_url_warns_on_ignored_retrieval_cache(monkeypatch):
+    import pytest
+
+    from ragnav.pipelines import hybrid
+
+    monkeypatch.setattr(hybrid, "download_pdf", MagicMock(side_effect=RuntimeError("stop")))
+    with pytest.warns(DeprecationWarning, match="retrieval_cache"), pytest.raises(RuntimeError):
+        hybrid.hybrid_rag_pdf_url(
+            pdf_url="https://example.com/x.pdf", llm=FakeLLMClient(), retrieval_cache=object()
+        )

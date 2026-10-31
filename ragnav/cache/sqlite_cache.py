@@ -161,6 +161,13 @@ class EmbeddingCache:
             self._kv.set(self._key(model, t), payload)
 
 
+@dataclass(frozen=True)
+class RetrievalCacheEntry:
+    block_ids: list[str]
+    confidence: str | None
+    top_score: float
+
+
 class RetrievalCache:
     def __init__(self, kv: SqliteKV) -> None:
         self._kv = kv
@@ -171,21 +178,53 @@ class RetrievalCache:
         h = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         return f"ret:{h}"
 
-    def get(self, payload: dict[str, Any]) -> list[str] | None:
+    def _load(self, payload: dict[str, Any]) -> Any:
         raw = self._kv.get(self._payload_key(payload))
         if raw is None:
             return None
         try:
-            data = json.loads(raw.decode("utf-8"))
-            if not isinstance(data, list):
-                return None
-            return [str(x) for x in data]
+            return json.loads(raw.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             raise RAGNavCacheError(
                 "Cached retrieval payload is not valid JSON; delete the cache file or turn off "
                 "retrieval caching."
             ) from e
 
-    def set(self, payload: dict[str, Any], block_ids: Iterable[str]) -> None:
-        body = json.dumps(list(block_ids), separators=(",", ":")).encode("utf-8")
+    def get(self, payload: dict[str, Any]) -> list[str] | None:
+        """Return the cached block ids for ``payload``, or ``None`` on a miss."""
+        data = self._load(payload)
+        if isinstance(data, dict):
+            data = data.get("block_ids")
+        if not isinstance(data, list):
+            return None
+        return [str(x) for x in data]
+
+    def get_entry(self, payload: dict[str, Any]) -> RetrievalCacheEntry | None:
+        """
+        Return block ids plus the confidence recorded when the result was computed.
+
+        Entries written by ragnav < 0.6.1 stored only block ids; they count as a miss here so
+        the caller recomputes (and re-caches) an accurate confidence.
+        """
+        data = self._load(payload)
+        if not isinstance(data, dict) or not isinstance(data.get("block_ids"), list):
+            return None
+        return RetrievalCacheEntry(
+            block_ids=[str(x) for x in data["block_ids"]],
+            confidence=data.get("confidence"),
+            top_score=float(data.get("top_score") or 0.0),
+        )
+
+    def set(
+        self,
+        payload: dict[str, Any],
+        block_ids: Iterable[str],
+        *,
+        confidence: str | None = None,
+        top_score: float = 0.0,
+    ) -> None:
+        body = json.dumps(
+            {"block_ids": list(block_ids), "confidence": confidence, "top_score": top_score},
+            separators=(",", ":"),
+        ).encode("utf-8")
         self._kv.set(self._payload_key(payload), body)

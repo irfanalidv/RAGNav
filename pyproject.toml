@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragnav"
-version = "0.6.0"
+version = "0.6.1"
 description = "Hybrid structure-aware retrieval — BM25 + embeddings + document graph expansion. Runs fully offline, no API key required."
 readme = "README.md"
 requires-python = ">=3.10"

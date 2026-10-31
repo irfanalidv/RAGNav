@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2026-10-31
+
+### Fixed
+- A retrieval-cache hit now returns the confidence and top score recorded when the result was
+  computed. It used to report `LOW` / `0.0` on every hit, which made `QueryFallback` re-run
+  repeated questions. Cache entries written by older versions are treated as a miss and
+  recomputed once.
+- Chat ingestion: `same_thread` edges pointed at a `#thread:<ts>` node that was never created, so
+  graph expansion could not follow them. They now link every message of a thread (root
+  included) to the others.
+- Legal ingestion: a short all-caps document title was emitted as the last block, under the last
+  heading. It now stays first, in document order.
+- `ragnav hybrid-pdf --print-hits` now uses the retrieval cache from `--cache-db`.
+
+### Deprecated
+- `hybrid_rag_pdf_url(retrieval_cache=...)` was always ignored; passing it now emits a
+  `DeprecationWarning`. Pass the cache to `hybrid_answer()` or `RAGNavRetriever.retrieve()`.
+
+### Added
+- `RetrievalCache.get_entry()` and the `RetrievalCacheEntry` dataclass;
+  `RetrievalCache.set()` accepts `confidence=` and `top_score=`.
+
 ## [0.6.0] - 2026-10-31
 
 ### Fixed

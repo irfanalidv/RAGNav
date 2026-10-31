@@ -114,6 +114,26 @@ def ingest_legal(
             )
         )
 
+    def flush_carry() -> None:
+        # Short lines (a document title, a caps banner) are carried forward to merge with the
+        # next paragraph. A heading ends that run: emit them here so they stay in document
+        # order under the heading context they appeared in.
+        nonlocal carry
+        if not carry:
+            return
+        blocks.append(
+            Block(
+                block_id=next_id(),
+                doc_id=doc_id,
+                type="paragraph",
+                text=carry,
+                parent_id=body_parent_id(),
+                heading_path=heading_path_tuple(),
+                anchors={},
+            )
+        )
+        carry = ""
+
     for line in lines:
         kind = _classify_line(line)
         if kind == "blank":
@@ -126,8 +146,11 @@ def ingest_legal(
         tier, title = kind[0], kind[1]
         if tier == 1:
             flush_paragraph()
+            is_banner = bool(_T1_CAPS.match(title)) and len(title.strip()) < MIN_BLOCK_CHARS
+            if not is_banner:
+                flush_carry()
             stack.clear()
-            if _T1_CAPS.match(title) and len(title.strip()) < MIN_BLOCK_CHARS:
+            if is_banner:
                 carry = (carry + "\n" + title).strip() if carry else title
                 continue
             hb = next_id()
@@ -145,6 +168,7 @@ def ingest_legal(
             stack.append((1, title, hb))
         elif tier == 2:
             flush_paragraph()
+            flush_carry()
             while stack and stack[-1][0] >= 2:
                 stack.pop()
             parent_id = stack[-1][2] if stack else None

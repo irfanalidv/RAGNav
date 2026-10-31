@@ -1,3 +1,15 @@
-from .sqlite_cache import EmbeddingCache, RetrievalCache, SqliteCacheConfig, SqliteKV
+from .sqlite_cache import (
+    EmbeddingCache,
+    RetrievalCache,
+    RetrievalCacheEntry,
+    SqliteCacheConfig,
+    SqliteKV,
+)
 
-__all__ = ["EmbeddingCache", "RetrievalCache", "SqliteCacheConfig", "SqliteKV"]
+__all__ = [
+    "EmbeddingCache",
+    "RetrievalCache",
+    "RetrievalCacheEntry",
+    "SqliteCacheConfig",
+    "SqliteKV",
+]

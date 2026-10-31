@@ -135,18 +135,30 @@ class RAGNavRetriever:
             "content_policy": repr(content_policy) if content_policy is not None else None,
         }
         if retrieval_cache is not None:
-            cached_ids = retrieval_cache.get(cache_payload)
-            if cached_ids:
+            entry = retrieval_cache.get_entry(cache_payload)
+            if entry is not None and entry.block_ids:
                 blocks = [
-                    self.index.blocks_by_id[b] for b in cached_ids if b in self.index.blocks_by_id
+                    self.index.blocks_by_id[b]
+                    for b in entry.block_ids
+                    if b in self.index.blocks_by_id
                 ]
-                return RetrievalResult(
-                    query=query,
-                    blocks=blocks,
-                    confidence=ConfidenceLevel.LOW,
-                    top_score=0.0,
-                    trace={"cache_hit": True},
-                )
+                try:
+                    cached_conf = ConfidenceLevel(entry.confidence)
+                except ValueError:
+                    cached_conf = ConfidenceLevel.LOW
+                if len(blocks) == len(entry.block_ids):
+                    return RetrievalResult(
+                        query=query,
+                        blocks=blocks,
+                        confidence=cached_conf,
+                        top_score=entry.top_score,
+                        trace={
+                            "cache_hit": True,
+                            "confidence": cached_conf.value,
+                            "top_score": entry.top_score,
+                        },
+                    )
+                # Some cached blocks are no longer in the index: recompute instead.
 
         bm: list[tuple[Block, float]] = []
         if w_bm25 > 0:
@@ -246,9 +258,6 @@ class RAGNavRetriever:
                 "sanitized_block_ids": pr.sanitized_block_ids,
             }
 
-        if retrieval_cache is not None:
-            retrieval_cache.set(cache_payload, [b.block_id for b in expanded])
-
         trace_payload: dict[str, Any] = {
             "query": query,
             "allowed_doc_ids": sorted(allowed_doc_ids) if allowed_doc_ids else None,
@@ -275,6 +284,14 @@ class RAGNavRetriever:
             top_score_out = 0.0
         trace_payload["confidence"] = conf.value
         trace_payload["top_score"] = top_score_out
+
+        if retrieval_cache is not None:
+            retrieval_cache.set(
+                cache_payload,
+                [b.block_id for b in expanded],
+                confidence=conf.value,
+                top_score=top_score_out,
+            )
 
         return RetrievalResult(
             query=query,
