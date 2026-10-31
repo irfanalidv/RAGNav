@@ -2,28 +2,63 @@
 
 # RAGNav
 
-**Hybrid, structure-aware retrieval for RAG: BM25 + embeddings + document-graph expansion. Runs fully offline, no API key required.**
+**Hybrid, structure-aware retrieval for RAG: BM25 + embeddings + document-graph expansion, with page routing and cross-reference following for long PDFs. Runs fully offline; no API key required.**
 
-[![PyPI](https://img.shields.io/pypi/v/ragnav.svg)](https://pypi.org/project/ragnav/)
-[![Python](https://img.shields.io/pypi/pyversions/ragnav.svg)](https://pypi.org/project/ragnav/)
-[![CI](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml/badge.svg)](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/irfanalidv/RAGNav/branch/main/graph/badge.svg)](https://codecov.io/gh/irfanalidv/RAGNav)
-[![PyPI Downloads](https://static.pepy.tech/personalized-badge/ragnav?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/ragnav)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/irfanalidv/RAGNav/blob/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/ragnav)](https://pypi.org/project/ragnav/)
+[![Python versions](https://img.shields.io/pypi/pyversions/ragnav)](https://pypi.org/project/ragnav/)
+[![Downloads](https://static.pepy.tech/badge/ragnav)](https://pepy.tech/projects/ragnav)
+[![CI](https://img.shields.io/github/actions/workflow/status/irfanalidv/RAGNav/ci.yml?branch=main&label=CI)](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/irfanalidv/RAGNav/codeql.yml?branch=main&label=CodeQL)](https://github.com/irfanalidv/RAGNav/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/github/license/irfanalidv/RAGNav)](https://github.com/irfanalidv/RAGNav/blob/main/LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)
+[![typed: mypy](https://img.shields.io/badge/typed-mypy-blue)](https://mypy-lang.org/)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/irfanalidv/RAGNav/blob/main/CONTRIBUTING.md)
 
 </div>
 
-**Production-grade hybrid retrieval** — BM25 plus dense embeddings plus optional structure-aware expansion. With **sentence-transformers** (default), you can index and query **without any API key** or separate LLM client for the common path below.
+## Why RAGNav?
 
-On **SQuAD** (500 questions, fully offline, zero paid API calls), hybrid RAGNav reaches **R@3 = 0.956**, beating BM25-only (0.932) and embedding-only (0.906). Reproduce: `python benchmarks/squad_benchmark.py` (results committed in `benchmarks/results/`).
+Chunk-and-embed RAG loses the structure of a document: chunks cut across sections, "see Table 2" never matches Table 2, and the answer comes back without saying where it lives. RAGNav keeps documents as a graph of blocks (headings, paragraphs, captions, messages, clauses) with typed edges, retrieves with BM25 and local embeddings fused by reciprocal rank fusion, and expands hits along that structure so the evidence is coherent and traceable to a page and block id. The common path is `pip install` plus sentence-transformers: no vector database, no API key, reproducible offline benchmarks.
 
-Frontier-LLM “build an index per document” stacks optimize a different cost and reproducibility tradeoff; RAGNav targets **pip-install hybrid search** with **offline, reproducible** benchmarks.
+On **SQuAD** (500 validation questions, fully offline), hybrid RAGNav reaches **R@3 = 0.956**, ahead of BM25-only (0.932) and embedding-only (0.906). Reproduce with `python benchmarks/squad_benchmark.py`.
+
+## Features
+
+| Feature | What it does |
+| ------- | ------------ |
+| Hybrid retrieval | BM25 (`rank-bm25`) + sentence-transformers embeddings, fused with RRF (or weighted min-max) |
+| Structure expansion | Adds parent headings and child blocks to each hit (`expand_structure=True`) |
+| Graph expansion | Walks typed edges (`next`, `reply_to`, `link_to`, ...) from each hit (`expand_graph=True`) |
+| Paper mode | PDF -> headings / paragraphs / captions with page anchors; page routing, then retrieval inside routed pages, then `link_to` cross-reference following (Figure / Table / Section / Appendix) |
+| Multi-format ingest | Markdown, PDF, HTML, email (`.eml`), Slack-style chat, numbered legal text |
+| Confidence | Every `RetrievalResult` carries `HIGH` / `MEDIUM` / `LOW` plus a normalized top score |
+| `QueryFallback` | On LOW / MEDIUM confidence, retries with LLM-written rephrasings and keeps the better result |
+| Inline citations | `answer_with_inline_citations` returns sentences ending in `[[block_id]]` and validates every citation |
+| Filters and ACLs | Restrict by doc id, page, document metadata, or `principal` against doc / block ACLs |
+| Guardrails | `SimpleInjectionPolicy` drops prompt-injection blocks and redacts secret-like strings |
+| Entity GraphRAG | Lexicon-based entity graph with multi-hop retrieval and provenance |
+| Reranking | Optional cross-encoder second stage (`CrossEncoderReranker`) |
+| Caching, cost, tracing | SQLite embedding / retrieval cache, `CostTracker` with `budget_usd`, `Trace` timings |
+| Offline evaluation | `EvalCase` / `score_retrieval`, SQuAD and CUAD benchmarks, one-command scorecard |
+| CLI | `ragnav paper-pdf`, `hybrid-pdf`, `vectorless-pdf`, `agentic-pdf` |
+
+Typed (`py.typed`, mypy-clean with `disallow_untyped_defs`).
+
+## Install
 
 ```bash
-pip install ragnav[embeddings]
+pip install ragnav                    # BM25 + structure/graph retrieval (numpy, rank-bm25)
+pip install "ragnav[embeddings]"      # + sentence-transformers for hybrid retrieval (recommended)
+pip install "ragnav[pdf]"             # + PyMuPDF and requests for PDF ingest
 ```
+
+With [uv](https://docs.astral.sh/uv/): `uv add "ragnav[embeddings]"`.
+
+Other extras: `messy` (HTML via beautifulsoup4), `reranking` (cross-encoder), `mistral` (Mistral chat / embeddings client), `all` (everything except `mistral`), `dev`. Requires Python 3.10+.
+
+## Quickstart
+
+Hybrid retrieval, no API key (`pip install "ragnav[embeddings]"`; downloads `all-MiniLM-L6-v2` once):
 
 ```python
 from ragnav import RAGNavIndex, RAGNavRetriever
@@ -47,193 +82,15 @@ result = retriever.retrieve(
     expand_structure=False,
     expand_graph=False,
 )
-print(result.blocks[0].text)
-print(result.confidence)
+print(result.blocks[0].text)  # Paris is the capital of France.
+print(result.confidence)  # ConfidenceLevel.HIGH
 ```
 
-![RAGNav architecture](https://raw.githubusercontent.com/irfanalidv/RAGNav/main/assets/ragnav-architecture.png?v=4)
+BM25-only works with the base install and no model download: pass `build_vectors=False` to `RAGNavIndex.build` and `use_vectors=False` to `retrieve`. `result.blocks` lists the best hit first, followed by the parent headings and children added by structure expansion.
 
-Regenerate this figure: `python3 scripts/gen_architecture.py` (needs Pillow, e.g. `pip install ragnav[dev]`).
+### Long PDFs and papers
 
-### Long PDFs and paper mode
-
-For **papers and long PDFs**, use **navigation-first** routing (pages → evidence → optional `link_to` refs). That workflow is **not** required for the markdown snippet above; see [Quickstart (Python): papers](#quickstart-python-papers-recommended) and the CLI section below.
-
-## The problem (why long-document QA fails)
-
-LLMs have finite context windows and degrade on long inputs (“lost in the middle” effects). In long PDFs (papers, reports, manuals), naive retrieval often returns *plausible* text but misses the *right* place.
-
-## Why classic vector + chunk RAG fails (in PDFs)
-
-1. **Intent mismatch**: the query expresses intent; the most similar text isn’t always the most relevant.
-2. **Hard chunking breaks meaning**: chunks cut across sections/tables/captions, losing provenance and coherence.
-3. **Similarity ≠ relevance**: many sections look semantically similar (especially in technical documents).
-4. **Cross-references**: “see Figure 3 / Table 2 / Appendix A / Section 4.1” rarely matches the referenced content.
-5. **No navigation**: users don’t want “top-k chunks”; they want *where the answer lives* + traceable evidence.
-
-## RAGNav’s approach (navigation-first retrieval loop)
-
-RAGNav is built around a simple loop:
-
-1. **Ingest (paper mode)**: PDF → blocks with `anchors={"page": N}` + edges (`parent`, `next`, `link_to`).
-2. **Route**: query → rank likely **pages**.
-3. **Retrieve**: search **within routed pages** (hybrid BM25 + embeddings).
-4. **Expand**: add coherence (section headers + adjacent “next” blocks).
-5. **Follow refs** (optional): traverse `link_to` edges (Figure/Table/Appendix/Section).
-6. **Answer**: generate from retrieved evidence (optionally with inline citations).
-
-## The “index” (what the model navigates)
-
-RAGNav normalizes everything into a small graph:
-
-```text
-Block {
-  block_id: "pdf:paper.pdf#b19"
-  doc_id: "pdf:paper.pdf"
-  text: "..."
-  anchors: { page: 5, line_start: 12, line_end: 20 }
-}
-
-Edge {
-  type: "parent" | "next" | "link_to" | ...
-  src: block_id
-  dst: block_id
-}
-```
-
-This graph is the in-process “index” the retriever navigates: pages, headings, cross-references, and provenance.
-
-## Vector RAG vs RAGNav (paper-mode)
-
-| Problem | Vector + chunks | RAGNav (navigation-first) |
-| --- | --- | --- |
-| Find “where” in a paper | Not explicit | Routes pages + sections |
-| Cross-references (“see Appendix”) | Usually missed | Follows `link_to` edges |
-| Provenance | Weak (chunk ids) | Page + block ids + anchors |
-| Coherence | Fragmented | Deterministic expansion (`parent`/`next`) |
-| Evaluation | Ad-hoc | Built-in offline suites + scorecard |
-
-## Use cases
-
-- **Research papers (PDF)**: page routing + cross-ref following.
-- **Reports / manuals / specs**: structure-aware retrieval (coherent evidence, not fragments).
-- **Grounded answers**: inline citations `[[block_id]]` per sentence (optional).
-- **Security baseline**: drop prompt-injection blocks and redact obvious secrets (optional).
-- **GraphRAG**: entity graph + multi-hop traversal with provenance (optional).
-
-## Acknowledgements & prior art
-
-RAGNav is an independent project. It builds on long-standing **information retrieval** practice (lexical BM25, hybrid fusion with dense retrieval) and open embedding models — *document structure as a first-class signal* has roots in IR, digital libraries, and structured PDF tooling, not a single product.
-
-- **PyMuPDF**: PDF text extraction is powered by `pymupdf` (optional dependency).
-- **BM25 / classic IR**: Lexical retrieval uses BM25-style scoring.
-- **Mistral**: Optional LLM/embedding client for chat, routing, and API-backed embed fallback.
-
-RAGNav is **not affiliated** with the vendors above. If you notice missing or incorrect attribution, please open an issue.
-
----
-
-## Install
-
-Requires **Python 3.10+**. From [PyPI](https://pypi.org/project/ragnav/) (recommended):
-
-```bash
-pip install ragnav[embeddings]
-```
-
-Optional extras: `ragnav[pdf]`, `ragnav[messy]` (HTML), `ragnav[reranking]`, `ragnav[mistral]`, `ragnav[all]` (see `pyproject.toml`; `mistral` is omitted from `all`).
-
-### Development (clone)
-
-```bash
-git clone https://github.com/irfanalidv/RAGNav.git
-cd RAGNav
-pip install -e ".[dev,pdf,messy]"
-# optional: pip install -e ".[mistral]"
-```
-
-## Setup (Mistral)
-
-Do **not** hardcode or commit keys. Use env vars:
-
-```bash
-export MISTRAL_API_KEY="your_key_here"
-```
-
----
-
-## Quickstart (CLI): run on an arXiv PDF URL
-
-Install:
-
-```bash
-pip install "ragnav[mistral,pdf]"
-export MISTRAL_API_KEY="..."
-```
-
-Run (recommended: paper-mode navigation):
-
-```bash
-ragnav paper-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What is Context Engineering?"
-```
-
-### Jupyter notebook quickstart
-
-Open:
-- **`cookbook/ragnav_quickstart.ipynb`** — offline SQuAD demo + confidence + QueryFallback ([run in Colab](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb))
-- `cookbook/ragnav_paper_quickstart.ipynb`
-
-Other modes (optional):
-
-- Hybrid (BM25 + embeddings, generic PDF blocks):
-
-```bash
-ragnav hybrid-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What is Context Engineering?"
-```
-
-- Vectorless (BM25-only, generic PDF blocks):
-
-```bash
-ragnav vectorless-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What is Context Engineering?"
-```
-
-- Agentic retrieval loop:
-
-```bash
-ragnav agentic-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "Summarize the paper's main contribution."
-```
-
-### Real example output (paper-mode navigation)
-
-This repo includes a paper-mode demo that downloads an arXiv PDF and runs **page routing + retrieval**:
-
-```bash
-python3 examples/papers/ragnav_paper_rag_pdf.py \
-  --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" \
-  --pdf-name "2507.13334.pdf" \
-  --max-pages 25
-```
-
-Output (real, trimmed):
-
-```text
-## Routed pages
-- doc_id=pdf:2507.13334.pdf page=4 score=0.5423 N=3
-- doc_id=pdf:2507.13334.pdf page=14 score=0.5298 N=7
-- doc_id=pdf:2507.13334.pdf page=9 score=0.4662 N=4
-- doc_id=pdf:2507.13334.pdf page=5 score=0.4597 N=3
-
-## Retrieved evidence blocks (first 10)
-- page=14  title=Sr-Nle [1130]  id=pdf:2507.13334.pdf#b106
-- page=2  title=Related Work  id=pdf:2507.13334.pdf#b11
-...
-```
-
----
-
-## Quickstart (Python): papers (recommended)
-
-### PaperRAG (page routing + cross-ref following)
+`PaperRAG` routes the query to likely pages, retrieves inside them, and follows `link_to` edges to referenced figures, tables, sections, and appendices. The LLM is used to write the answer; embeddings stay local by default. Needs `pip install "ragnav[pdf,mistral]"`, `MISTRAL_API_KEY`, and network access to download the PDF:
 
 ```python
 from ragnav.llm.mistral import MistralClient
@@ -246,76 +103,152 @@ cfg = PaperRAGConfig(max_pages=25, top_pages=4, follow_refs=True)
 pdf_bytes = download_pdf("https://arxiv.org/pdf/2507.13334.pdf")
 paper = PaperRAG.from_pdf_bytes(pdf_bytes, llm=llm, pdf_name="paper.pdf", cfg=cfg)
 print(paper.answer("What experiments were conducted?", cfg=cfg))
-```
-
-### Grounded answering (inline citations per sentence)
-
-```python
+# answer_cited: every sentence ends in [[block_id]]
 print(paper.answer_cited("What does Figure 1 show?", cfg=cfg))
 ```
 
-Output format:
+Or from the shell:
 
-```text
-Sentence one [[pdf:paper.pdf#b12]].
-Sentence two [[pdf:paper.pdf#b47]] [[pdf:paper.pdf#b48]].
+```bash
+ragnav paper-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What is Context Engineering?"
 ```
 
----
+<details>
+<summary>Other CLI modes and example output</summary>
 
-## Quickstart: GraphRAG (entity multi-hop with provenance)
+```bash
+ragnav hybrid-pdf     --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What is Context Engineering?"
+ragnav vectorless-pdf --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "What is Context Engineering?"
+ragnav agentic-pdf    --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --query "Summarize the paper's main contribution."
+```
+
+All four take `--cache-db path.sqlite` to cache embeddings and retrievals; `vectorless-pdf`, `hybrid-pdf`, and `paper-pdf` also take `--print-hits` to dump the retrieved evidence as JSON.
+
+Paper-mode demo (`python3 examples/papers/ragnav_paper_rag_pdf.py --pdf-url "https://arxiv.org/pdf/2507.13334.pdf" --pdf-name "2507.13334.pdf" --max-pages 25`), trimmed output:
+
+```text
+## Routed pages
+- doc_id=pdf:2507.13334.pdf page=4 score=0.5423 N=3
+- doc_id=pdf:2507.13334.pdf page=14 score=0.5298 N=7
+- doc_id=pdf:2507.13334.pdf page=9 score=0.4662 N=4
+- doc_id=pdf:2507.13334.pdf page=5 score=0.4597 N=3
+```
+
+</details>
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph ingest["ragnav.ingest"]
+        direction TB
+        MD[markdown]
+        PDF[pdf / pdf paper-mode]
+        HTML[html]
+        EML[email]
+        CHAT[chat]
+        LEGAL[legal]
+    end
+
+    ingest --> G["Blocks + typed Edges<br/>(BlockGraph: parent, next,<br/>link_to, reply_to, ...)"]
+    G --> IDX["RAGNavIndex.build<br/>BM25Index + VectorIndex<br/>(sentence-transformers or llm.embed)"]
+
+    subgraph retrieve["RAGNavRetriever.retrieve"]
+        direction TB
+        S1[BM25 search] --> F[Fusion: RRF or weighted]
+        S2[Vector search] --> F
+        F --> FL[Filters: doc ids, pages,<br/>metadata, ACL principal]
+        FL --> RR[Optional CrossEncoderReranker]
+        RR --> C[Confidence HIGH / MEDIUM / LOW]
+        C --> XS[expand_structure] --> XG[expand_graph] --> P[content_policy]
+    end
+
+    IDX --> retrieve
+    P --> RES[RetrievalResult<br/>blocks, confidence, trace]
+
+    RES --> UP["PaperRAG / pipelines / QueryFallback<br/>answer_with_inline_citations"]
+    CACHE[(SQLite EmbeddingCache<br/>RetrievalCache)] -.-> IDX
+    CACHE -.-> retrieve
+```
+
+`retrieve_paper()` runs the same retrieval after `route_pages_by_semantics` picks the top pages, then follows `link_to` edges. `EntityGraphRetriever` (GraphRAG) is a separate path over an entity graph built from the same blocks.
+
+Key design decisions:
+
+- **Blocks and edges, not chunks.** Every ingester emits blocks with anchors (page, line range, URL, timestamp) and typed edges, so provenance and coherence come from the document itself rather than from chunk overlap.
+- **Rank fusion over score mixing.** BM25 and cosine scores live on different scales; RRF combines rank positions and needs no per-corpus weight tuning. With a single contributing list, its own scores are kept so confidence still reflects match strength.
+- **Deterministic expansion.** Structure and graph expansion are rule-based and keep the hits' relevance order (best hit first), so results are reproducible and can be truncated safely.
+- **Offline by default, LLM optional.** Indexing and retrieval need no LLM. Clients implement a two-method `LLMClient` protocol (`chat`, `embed`); `MistralClient` and `FakeLLMClient` ship with the package.
+
+## Use cases and recipes
+
+Offline recipes (base install only, no API key; run in CI), in [`examples/offline/`](https://github.com/irfanalidv/RAGNav/tree/main/examples/offline):
+
+| Script | What it shows |
+| ------ | ------------- |
+| [`help_center_search.py`](https://github.com/irfanalidv/RAGNav/blob/main/examples/offline/help_center_search.py) | Heading-aware search across support articles, metadata filters, confidence; `--embeddings` for hybrid |
+| [`contract_clause_lookup.py`](https://github.com/irfanalidv/RAGNav/blob/main/examples/offline/contract_clause_lookup.py) | Numbered contract -> clause blocks with section provenance and the neighbouring carve-out clause |
+| [`incident_thread_qa.py`](https://github.com/irfanalidv/RAGNav/blob/main/examples/offline/incident_thread_qa.py) | Slack incident thread recovered through `reply_to` graph expansion instead of one keyword hit |
+| [`retrieval_eval_and_guardrails.py`](https://github.com/irfanalidv/RAGNav/blob/main/examples/offline/retrieval_eval_and_guardrails.py) | `EvalCase` / `score_retrieval` at two `k` values; `SimpleInjectionPolicy` drops an injected block and redacts a key |
+
+More examples (most need `MISTRAL_API_KEY` and / or network) are indexed in [`examples/README.md`](https://github.com/irfanalidv/RAGNav/blob/main/examples/README.md): paper-mode PDFs, multi-document routing by semantics / description / metadata, agentic retrieval, entity GraphRAG over a PDF, SQuAD and CUAD retrieval. Notebooks live in [`cookbook/`](https://github.com/irfanalidv/RAGNav/tree/main/cookbook) ([quickstart in Colab](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)).
+
+<details>
+<summary>Query fallback and cost budget</summary>
 
 ```python
-from ragnav.graphrag import build_entity_graph, EntityGraphRetriever
+from ragnav import RAGNavIndex, RAGNavRetriever
+from ragnav.cost import CostTracker
+from ragnav.ingest.markdown import ingest_markdown_string
+from ragnav.llm.fake import FakeLLMClient  # offline stand-in; use MistralClient() or your own
+from ragnav.retrieval import QueryFallback
 
-eg = build_entity_graph(blocks)  # blocks are RAGNav Block objects
+doc, blocks = ingest_markdown_string("# FAQ\n\nRefunds are issued within 30 days.\n", name="faq.md")
+retriever = RAGNavRetriever(
+    index=RAGNavIndex.build(documents=[doc], blocks=blocks, build_vectors=False)
+)
+tracker = CostTracker(budget_usd=0.50)  # check_budget() raises BudgetExceededError once spent
+llm = FakeLLMClient(cost_tracker=tracker)
+out = QueryFallback(retriever, llm).retrieve("money back?", use_vectors=False)
+print(out.attempts, out.winning_query, out.final_result.confidence.value)
+print(tracker.report().summary())
+```
+
+</details>
+
+<details>
+<summary>Entity GraphRAG (multi-hop with provenance)</summary>
+
+```python
+from ragnav.graphrag import EntityGraphRetriever, build_entity_graph
+from ragnav.ingest.markdown import ingest_markdown_string
+
+doc, blocks = ingest_markdown_string(
+    "# Results\n\nBERT was evaluated on SQuAD and GLUE.\n\n"
+    "# Datasets\n\nSQuAD is a reading comprehension dataset built from Wikipedia.\n",
+    name="paper.md",
+)
+eg = build_entity_graph(blocks)
 egr = EntityGraphRetriever(graph=eg, blocks_by_id={b.block_id: b for b in blocks})
 
 out = egr.retrieve("Which dataset was BERT evaluated on?")
 for b in out["blocks"][:3]:
-    print(b.block_id, b.anchors.get("page"))
+    print(b.block_id, b.text)
 ```
 
-Networked PDF demo:
+</details>
 
-```bash
-pip install "ragnav[mistral,pdf]"
-export MISTRAL_API_KEY="..."
-python3 examples/graphs/ragnav_entity_graphrag_pdf.py
-```
+<details>
+<summary>Use any LLM (OpenAI example)</summary>
 
----
-
-## Production features
-
-Features PageIndex does not have:
-
-| Feature | What it does |
-|---------|-------------|
-| `ConfidenceLevel` | Every retrieval result carries HIGH/MEDIUM/LOW confidence so you can decide whether to show the answer or say "I'm not sure." |
-| `QueryFallback` | On LOW/MEDIUM confidence, automatically retries with LLM-generated query rephrasing. Prevents silent failures. |
-| `CostTracker` | Tracks token usage and cost per LLM call. Set a `budget_usd` to get `BudgetExceededError` before you overspend. |
-| `CrossEncoderReranker` | Optional second-stage reranker with **≥50** first-stage candidates (see `retrieve()`). On small SQuAD-style corpora the default MS MARCO MiniLM reranker can trail hybrid RRF alone; use domain-tuned models or skip reranking when the pool is easy. |
-| Multi-format ingest | PDF, markdown, HTML, email chains, chat logs, legal/numbered documents. |
-| No API key required | Runs fully offline with sentence-transformers. |
-
----
-
-## Use any LLM
-
-RAGNav works with any LLM. Built-in: **Mistral**. For others, one small wrapper:
+RAGNav needs only `chat()` and `embed()`. Pass the client as `llm=` to `RAGNavRetriever`, `RAGNavIndex.build`, `PaperRAG`, or `QueryFallback`. Needs `pip install openai` and `OPENAI_API_KEY`:
 
 ```python
 from openai import OpenAI
 
 from ragnav.llm.base import LLMClient
-from ragnav.llm.mistral import MistralClient
-
-# Mistral (built-in) — MISTRAL_API_KEY
-llm = MistralClient()
 
 
-# OpenAI — pip install openai — OPENAI_API_KEY
 class OpenAIClient(LLMClient):
     def __init__(self):
         self.client = OpenAI()
@@ -334,93 +267,129 @@ class OpenAIClient(LLMClient):
             input=list(inputs),
         )
         return [d.embedding for d in r.data]
-
-
-# Pass either client to RAGNavRetriever(..., llm=...), PaperRAG(..., llm=...), QueryFallback(..., llm=...).
 ```
 
-Anthropic, Groq, Ollama — same pattern (~10 lines each).
+</details>
+
+## Configuration
+
+| Variable | Used by | Notes |
+| -------- | ------- | ----- |
+| `MISTRAL_API_KEY` | `MistralClient` (name configurable via `MistralConfig.api_key_env`) | Read from the environment or a `.env` file when `python-dotenv` is installed |
+| `HF_HUB_OFFLINE=1` | sentence-transformers / Hugging Face Hub | Use cached models without network (as CI does) |
+
+| Option | Where | Default | Meaning |
+| ------ | ----- | ------- | ------- |
+| `build_vectors`, `use_sentence_transformers`, `vector_model` | `RAGNavIndex.build` | `True`, `True`, `all-MiniLM-L6-v2` | Embed blocks locally; with `use_sentence_transformers=False` the `llm.embed()` client is used |
+| `embedding_cache` | `RAGNavIndex.build` | `None` | `EmbeddingCache(SqliteKV(SqliteCacheConfig(db_path, ttl_seconds)))` |
+| `k_bm25`, `k_vec`, `k_final` / `top_k` | `retrieve` | `30`, `30`, `12` | Candidates per retriever and number of seed hits |
+| `fusion`, `w_bm25`, `w_vec` | `retrieve` | `"rrf"`, `0.5`, `0.5` | Fusion method; weights apply to the weighted method and switch a retriever off at `0` |
+| `expand_structure`, `expand_graph`, `graph_edge_types`, `graph_hops` | `retrieve` | `True`, `False`, `next/reply_to/same_thread/quote_of`, `1` | Context expansion |
+| `allowed_doc_ids`, `allowed_doc_pages`, `required_doc_metadata`, `principal` | `retrieve` | `None` | Filters and ACL checks |
+| `content_policy`, `retrieval_cache`, `trace` | `retrieve` | `None` | Guardrail policy, SQLite retrieval cache, timing trace |
+| `reranker` | `RAGNavRetriever` | `None` | `CrossEncoderReranker()`; reranks `max(k_final * 5, 50)` candidates |
+| `max_pages`, `top_pages`, `follow_refs`, `k_final`, `max_answer_blocks` | `PaperRAGConfig` | `25`, `4`, `True`, `10`, `8` | Paper-mode routing and answer context |
+| `max_attempts`, `retry_on` | `FallbackConfig` | `3`, `{LOW, MEDIUM}` | When `QueryFallback` rephrases |
+| `budget_usd` | `CostTracker` | `None` | Spend ceiling for LLM calls |
+
+## API overview
+
+| Import | Purpose |
+| ------ | ------- |
+| `ragnav.RAGNavIndex.build(...)` | Build BM25 + vector indexes and the edge maps from documents, blocks, and edges |
+| `ragnav.RAGNavRetriever` | `retrieve()`, `retrieve_paper()`, `retrieve_raw()`, document / page routing helpers |
+| `ragnav.RetrievalResult`, `ragnav.models.ConfidenceLevel` | Blocks, confidence, top score, trace |
+| `ragnav.ingest.*` | `ingest_markdown_string`, `ingest_pdf_bytes(_paper/_graph)`, `ingest_html_string_graph`, `ingest_eml_bytes_graph`, `ingest_slack_messages_graph`, `ingest_legal` |
+| `ragnav.papers.PaperRAG`, `PaperRAGConfig` | Paper-mode retrieval, `answer()`, `answer_cited()` |
+| `ragnav.retrieval.QueryFallback`, `FallbackConfig` | Confidence-gated query rephrasing |
+| `ragnav.answering.answer_with_inline_citations` | Grounded answers with validated `[[block_id]]` citations |
+| `ragnav.graphrag.build_entity_graph`, `EntityGraphRetriever` | Entity graph and multi-hop retrieval |
+| `ragnav.reranking.CrossEncoderReranker` | Cross-encoder second stage |
+| `ragnav.security.policy.SimpleInjectionPolicy` | Drop injection blocks, redact secrets |
+| `ragnav.cache.sqlite_cache` | `SqliteKV`, `EmbeddingCache`, `RetrievalCache` |
+| `ragnav.cost.CostTracker`, `ragnav.observability.Trace` | Spend and budget, timings and counters |
+| `ragnav.eval.EvalCase`, `score_retrieval` | Offline retrieval metrics |
+| `ragnav.pipelines.*` | `vectorless_rag_pdf_url`, `hybrid_rag_pdf_url`, `agentic_pdf_url` |
+| `ragnav.llm.mistral.MistralClient`, `ragnav.llm.FakeLLMClient`, `ragnav.llm.LLMClient` | LLM clients and protocol |
 
 ## Benchmarks
 
-Reproduce with `benchmarks/squad_benchmark.py` and `benchmarks/cuad_benchmark.py` after `pip install ragnav[embeddings] datasets`. No API key for SQuAD or CUAD. Default hybrid path uses **RRF**; optional **cross-encoder reranking** is `RAGNavRetriever(reranker=...)`.
+Reproduce with `python benchmarks/squad_benchmark.py` and `python benchmarks/cuad_benchmark.py` after `pip install "ragnav[embeddings]" datasets`. No API key needed. Results are written to [`benchmarks/results/`](https://github.com/irfanalidv/RAGNav/tree/main/benchmarks/results).
 
 ### Retrieval accuracy (SQuAD)
 
-| Dataset | Method | R@1 | R@3 | R@5 | MRR@10 |
-|---------|--------|-----|-----|-----|--------|
-| SQuAD | BM25-only | 0.852 | 0.932 | 0.950 | 0.896 |
-| SQuAD | Embedding-only | 0.772 | 0.906 | 0.942 | 0.844 |
-| SQuAD | **RAGNav hybrid (RRF 0.5/0.5)** | **0.864** | **0.956** | **0.978** | **0.912** |
-| SQuAD | Hybrid RRF + cross-encoder reranker | 0.862 | 0.944 | 0.968 | 0.906 |
+| Method | R@1 | R@3 | R@5 | MRR@10 |
+|--------|-----|-----|-----|--------|
+| BM25-only | 0.852 | 0.932 | 0.950 | 0.896 |
+| Embedding-only | 0.772 | 0.906 | 0.942 | 0.844 |
+| **RAGNav hybrid (RRF)** | **0.864** | **0.956** | **0.978** | **0.912** |
+| Hybrid RRF + cross-encoder reranker | 0.862 | 0.944 | 0.968 | 0.906 |
 
-*SQuAD: 500 questions, 447 unique passages, `rajpurkar/squad` validation set, CC BY-SA 4.0*
+*500 questions over 447 unique passages from the `rajpurkar/squad` validation set (CC BY-SA 4.0), seed 42, `all-MiniLM-L6-v2`. On this easy pool the default MS MARCO MiniLM cross-encoder trails RRF alone; use a domain-tuned reranker or skip reranking.*
 
-### Limitations / hard cases
+<details>
+<summary>Hard case: legal clauses (CUAD)</summary>
 
-Legal-contract span retrieval is hard: on **CUAD**, span **S@3 = 0.071**. I report this openly — clause-level legal retrieval is an open problem and a roadmap item, not a solved one. Reproduce: `python benchmarks/cuad_benchmark.py`.
+Clause-level legal retrieval is hard and is reported openly: on **CUAD**, span **S@3 = 0.071**.
 
-| Dataset | Method | R@1 | R@3 | R@5 | MRR@10 |
-|---------|--------|-----|-----|-----|--------|
-| CUAD (block-level) | BM25-only | 0.017 | 0.040 | 0.044 | 0.032 |
-| CUAD (block-level) | **RAGNav hybrid (legal ingest + RRF)** | **0.007** | **0.047** | **0.051** | **0.027** |
-| CUAD (block-level) | **RAGNav + graph expansion** | **0.007** | **0.047** | **0.051** | **0.027** |
+| Method | R@1 | R@3 | R@5 | MRR@10 |
+|--------|-----|-----|-----|--------|
+| BM25-only | 0.017 | 0.040 | 0.044 | 0.032 |
+| RAGNav hybrid (legal ingest + RRF) | 0.007 | 0.047 | 0.051 | 0.027 |
+| RAGNav + graph expansion | 0.007 | 0.047 | 0.051 | 0.027 |
 
-### CUAD — span recall (concatenated top-k blocks)
+Span recall (gold answer text appears in the concatenated top-k blocks):
 
-Gold answer span may sit across legal-ingest block boundaries; **span S@k** is true if any gold string appears in the concatenation of the top-k retrieved blocks’ text (fairer for clauses).
+| Method | S@1 | S@3 | S@5 | MRR@10 |
+|--------|-----|-----|-----|--------|
+| BM25-only | 0.020 | 0.061 | 0.071 | 0.044 |
+| RAGNav hybrid (legal ingest + RRF) | 0.010 | 0.071 | 0.074 | 0.037 |
+| RAGNav + graph expansion | 0.010 | 0.071 | 0.074 | 0.037 |
 
-| Dataset | Method | S@1 | S@3 | S@5 | MRR@10 |
-|---------|--------|-----|-----|-----|--------|
-| CUAD (span) | BM25-only | 0.020 | 0.061 | 0.071 | 0.044 |
-| CUAD (span) | **RAGNav hybrid (legal ingest + RRF)** | **0.010** | **0.071** | **0.074** | **0.037** |
-| CUAD (span) | **RAGNav + graph expansion** | **0.010** | **0.071** | **0.074** | **0.037** |
+*300 questions sampled (297 with the gold span locatable after legal ingest), `theatticusproject/cuad-qa` test set (CC BY 4.0).*
 
-*CUAD: 300 questions sampled (297 with gold locatable in the indexed blocks after legal ingest), `theatticusproject/cuad-qa` test JSON (official zip), CC BY 4.0. Block-level R@k requires a gold block_id in the top-k list; span S@k only requires the gold answer text to appear in the merged text of those blocks.*
+</details>
 
-### vs. PageIndex (illustrative)
-
-| | PageIndex | RAGNav |
-|--|-----------|--------|
-| Requires GPT-4o / paid LLM for core tree workflow | Yes | No — hybrid retrieval with local embeddings by default |
-| Fully offline (no API key) | No | Yes |
-| SQuAD R@3 | Not published | **0.956** (hybrid RRF) |
-| CUAD clause retrieval (span S@3) | Not published | **0.071** (hybrid RRF + legal ingest; block-level R@3 in results file) |
-| Handles markdown / chat / email | No | Yes |
-| Structure-aware graph expansion | No | Yes |
-
-**FinanceBench:** Often cited with a **frontier LLM** and a finance-PDF setup. RAGNav does not ship that harness: it would imply **paid API** runs and a different evaluation contract than the offline SQuAD/CUAD suites above. Treat FinanceBench as **out of scope** for this repo until a reproducible, keyless or clearly documented protocol is added.
-
-### One-command scorecard (offline)
+<details>
+<summary>One-command offline scorecard</summary>
 
 ```bash
 python3 -m benchmarks.scorecard
 ```
 
-Example output:
+Runs the offline smoke, regression, paper cross-reference, entity, security, and citation suites and prints a JSON report with `"ok": true` when all pass.
 
-```json
-{
-  "ok": true,
-  "suites": [
-    { "name": "offline_smoke", "ok": true },
-    { "name": "paper_eval", "ok": true, "json": { "suite": "paper_crossref_v1", "follow_refs_true": { "block_hit_rate": 1.0 } } },
-    { "name": "entity_eval_excerpt", "ok": true, "json": { "suite": "entity_excerpt_v1" } },
-    { "name": "security_eval", "ok": true }
-  ]
-}
-```
+</details>
 
----
+## Research and references
 
-## Contributing
+RAGNav implements these published methods:
 
-Issues and pull requests are welcome. See [CONTRIBUTING.md](https://github.com/irfanalidv/RAGNav/blob/main/CONTRIBUTING.md)
-for the dev setup (`pip install -e ".[dev]"`, `pytest`, `ruff check .`, `ruff format --check .`),
-and [SECURITY.md](https://github.com/irfanalidv/RAGNav/blob/main/SECURITY.md) for reporting vulnerabilities privately.
+- **BM25** lexical retrieval (via `rank-bm25`): S. Robertson and H. Zaragoza, "The Probabilistic Relevance Framework: BM25 and Beyond," *Foundations and Trends in Information Retrieval*, 3(4), 2009.
+- **Reciprocal Rank Fusion** with `k = 60` in `_rrf_fuse`: G. V. Cormack, C. L. A. Clarke, and S. Büttcher, "Reciprocal Rank Fusion outperforms Condorcet and individual rank learning methods," *SIGIR 2009*.
+- **Sentence embeddings** via sentence-transformers (`all-MiniLM-L6-v2` by default): N. Reimers and I. Gurevych, "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks," *EMNLP-IJCNLP 2019*.
+- **Cross-encoder reranking** (`CrossEncoderReranker`, MS MARCO MiniLM by default): R. Nogueira and K. Cho, "Passage Re-ranking with BERT," arXiv:1901.04085, 2019.
 
-If you use RAGNav in research, please cite it via [CITATION.cff](https://github.com/irfanalidv/RAGNav/blob/main/CITATION.cff).
+Benchmark datasets: SQuAD (P. Rajpurkar et al., *EMNLP 2016*) and CUAD (D. Hendrycks et al., *NeurIPS 2021 Datasets and Benchmarks*).
 
-## License
+RAGNav is an independent project and is not affiliated with PyMuPDF, Mistral, or the dataset authors. If you notice missing or incorrect attribution, please open an issue.
 
-MIT. See [LICENSE](https://github.com/irfanalidv/RAGNav/blob/main/LICENSE).
+## When to use it
+
+- **Good fit:** long PDFs and structured documents where *where* the answer lives matters (papers, manuals, reports, contracts), mixed sources (markdown, chat, email, HTML), offline or air-gapped retrieval, and teams that want reproducible retrieval metrics.
+- **Less suited:** very large corpora that need an external vector database and approximate nearest-neighbour search (RAGNav keeps indexes in process memory), or pipelines that already depend on a full orchestration framework.
+
+## Roadmap
+
+- Clause-level legal retrieval (current CUAD S@3 is 0.071).
+- A reproducible, documented protocol for finance-PDF benchmarks.
+- Persisted on-disk indexes for faster restarts.
+- More built-in LLM clients behind the same `LLMClient` protocol.
+
+## Contributing, security, citation, license
+
+- Issues and pull requests are welcome; see [CONTRIBUTING.md](https://github.com/irfanalidv/RAGNav/blob/main/CONTRIBUTING.md) and the [Code of Conduct](https://github.com/irfanalidv/RAGNav/blob/main/CODE_OF_CONDUCT.md). CI runs `ruff check`, `ruff format --check`, `mypy ragnav`, and `pytest --cov` on Python 3.10-3.13.
+- Report vulnerabilities privately as described in [SECURITY.md](https://github.com/irfanalidv/RAGNav/blob/main/SECURITY.md).
+- If you use RAGNav in research, please cite it via [CITATION.cff](https://github.com/irfanalidv/RAGNav/blob/main/CITATION.cff) (GitHub's "Cite this repository" button reads it).
+- Release history: [CHANGELOG.md](https://github.com/irfanalidv/RAGNav/blob/main/CHANGELOG.md).
+- MIT License, see [LICENSE](https://github.com/irfanalidv/RAGNav/blob/main/LICENSE).
