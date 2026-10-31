@@ -17,6 +17,17 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+_CONFIDENCE_RANK = {ConfidenceLevel.LOW: 0, ConfidenceLevel.MEDIUM: 1, ConfidenceLevel.HIGH: 2}
+
+
+def _quality(res: RetrievalResult) -> tuple[int, float]:
+    """Order results by confidence level first, then by normalized top score.
+
+    ``top_score`` alone cannot compare two queries: it is min-max normalized within each
+    result list, so any result with two or more distinct scores has ``top_score == 1.0``.
+    """
+    return (_CONFIDENCE_RANK.get(res.confidence, 0), res.top_score)
+
 
 @dataclass
 class FallbackConfig:
@@ -80,7 +91,7 @@ class QueryFallback:
             variation = variations[0]
             queries_tried.append(variation)
             candidate = self._retriever.retrieve(variation, **retrieve_kwargs)
-            if candidate.top_score > best.top_score:
+            if _quality(candidate) > _quality(best):
                 best = candidate
                 winning_query = variation
                 if best.confidence not in cfg.retry_on:
@@ -89,10 +100,10 @@ class QueryFallback:
                         attempt,
                         queries_tried,
                         winning_query,
-                        improved=best.top_score > initial.top_score,
+                        improved=_quality(best) > _quality(initial),
                     )
 
-        improved = best.top_score > initial.top_score
+        improved = _quality(best) > _quality(initial)
         return FallbackResult(
             best, len(queries_tried), queries_tried, winning_query, improved=improved
         )

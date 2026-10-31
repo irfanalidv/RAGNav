@@ -78,3 +78,43 @@ def test_fallback_llm_failure_returns_best_so_far():
     out = fb.retrieve("q")
     assert out.attempts == 1
     assert out.final_result.top_score == 0.15
+
+
+def test_fallback_prefers_higher_confidence_even_when_top_scores_tie():
+    """Normalized top_score is 1.0 for most result lists; confidence must decide."""
+    b = Block(block_id="b", doc_id="d", type="paragraph", text="evidence")
+    medium = RetrievalResult(
+        query="q", blocks=[b], confidence=ConfidenceLevel.MEDIUM, top_score=1.0
+    )
+    high = RetrievalResult(query="v", blocks=[b], confidence=ConfidenceLevel.HIGH, top_score=1.0)
+    retriever = MagicMock()
+    retriever.retrieve.side_effect = [medium, high]
+    llm = MagicMock()
+    llm.chat.return_value = "v\n"
+    out = QueryFallback(retriever, llm).retrieve("q")
+    assert out.improved is True
+    assert out.winning_query == "v"
+    assert out.final_result.confidence is ConfidenceLevel.HIGH
+
+
+def test_fallback_end_to_end_with_real_retriever():
+    """Against a real index the variation must be able to win (it could not before)."""
+    from ragnav.models import Document
+    from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
+
+    blocks = [
+        Block(block_id="r", doc_id="d", type="paragraph", text="Refund window is 30 days."),
+        Block(block_id="t", doc_id="d", type="paragraph", text="Tokens expire after 30 days."),
+        Block(block_id="o", doc_id="d", type="paragraph", text="Office hours are 9 to 5."),
+    ]
+    index = RAGNavIndex.build(documents=[Document(doc_id="d")], blocks=blocks, build_vectors=False)
+    retriever = RAGNavRetriever(index=index)
+    llm = MagicMock()
+    llm.chat.return_value = "refund window\n"
+    out = QueryFallback(retriever, llm).retrieve(
+        "30 days", use_vectors=False, expand_structure=False
+    )
+    first = retriever.retrieve("30 days", use_vectors=False, expand_structure=False)
+    assert first.confidence is ConfidenceLevel.MEDIUM  # two equally good BM25 hits
+    assert out.winning_query == "refund window"
+    assert out.final_result.blocks[0].block_id == "r"

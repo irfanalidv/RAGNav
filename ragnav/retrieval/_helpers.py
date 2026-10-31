@@ -49,9 +49,13 @@ def _fuse_retrieval_rankings(
     """
     Combine BM25 and dense hit lists for hybrid retrieval.
 
-    ``fusion="rrf"`` uses reciprocal rank fusion when at least one non-empty
-    ranked list is present. ``fusion="weighted"`` uses min-max normalized scores
-    and the caller's BM25 / vector weights (legacy path).
+    ``fusion="rrf"`` uses reciprocal rank fusion when both lists contribute. With a
+    single contributing list (BM25-only or vector-only) there is nothing to fuse, so
+    that list is returned with its own scores: same order as RRF, but the scores still
+    reflect how strongly each block matched (RRF of one list depends only on rank, which
+    made the confidence level a function of the candidate count rather than the query).
+    ``fusion="weighted"`` uses min-max normalized scores and the caller's BM25 / vector
+    weights (legacy path).
     """
     by_id: dict[str, Block] = {}
     for b, _ in bm:
@@ -75,6 +79,9 @@ def _fuse_retrieval_rankings(
         ranked_lists.append([(b.block_id, s) for b, s in ve])
     if not ranked_lists:
         return []
+    if len(ranked_lists) == 1:
+        single = bm if (bm and w_bm25 > 0) else ve
+        return sorted(single, key=lambda x: x[1], reverse=True)
     fused = _rrf_fuse(ranked_lists)
     out: list[tuple[Block, float]] = []
     for bid, rrf_s in fused:
