@@ -148,3 +148,31 @@ def test_with_trace_merges_payload():
     merged = _with_trace(res, {"step": "test"})
     assert merged.trace["step"] == "test"
     assert merged.query == "q"
+
+
+def test_expand_structure_keeps_seed_relevance_order():
+    from ragnav.models import Block
+    from ragnav.retrieval._helpers import _expand_structure
+
+    h_a = Block(block_id="a#h0", doc_id="a", type="heading", text="A", heading_path=("A",))
+    p_a = Block(
+        block_id="a#p9",
+        doc_id="a",
+        type="paragraph",
+        text="a",
+        parent_id="a#h0",
+        heading_path=("A",),
+    )
+    h_b = Block(block_id="b#h0", doc_id="b", type="heading", text="B", heading_path=("B",))
+    p_b = Block(
+        block_id="b#p1",
+        doc_id="b",
+        type="paragraph",
+        text="b",
+        parent_id="b#h0",
+        heading_path=("B",),
+    )
+    by_id = {b.block_id: b for b in (h_a, p_a, h_b, p_b)}
+    by_parent = {"a#h0": [p_a], "b#h0": [p_b]}
+    out = _expand_structure(by_id, by_parent, [p_b, p_a])  # p_b ranked first
+    assert [b.block_id for b in out] == ["b#p1", "b#h0", "a#p9", "a#h0"]

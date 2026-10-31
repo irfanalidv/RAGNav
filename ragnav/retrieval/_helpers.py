@@ -121,6 +121,10 @@ def _expand_structure(
     Deterministic expansion to make context coherent:
     - parent chain (section headers)
     - a few children (local neighborhood)
+
+    Output keeps the seeds' relevance order: each seed is followed by its (not yet
+    included) parents and children, so ``blocks[0]`` is still the best hit and callers
+    that truncate the list keep the most relevant evidence.
     """
     out: list[Block] = []
     seen: set[str] = set()
@@ -138,7 +142,6 @@ def _expand_structure(
         for c in _children(by_parent, seed):
             add(c)
 
-    out.sort(key=lambda b: (len(b.heading_path), b.block_id))
     return out
 
 
