@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
@@ -20,8 +20,8 @@ def ingest_markdown_string(
     content: str,
     *,
     name: str = "document.md",
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[MarkdownIngestOptions] = None,
+    metadata: dict[str, Any] | None = None,
+    opts: MarkdownIngestOptions | None = None,
 ) -> tuple[Document, list[Block]]:
     """
     Turn markdown into blocks: headings, body text as paragraphs, fenced regions as code.
@@ -168,8 +168,8 @@ def ingest_markdown_string_graph(
     content: str,
     *,
     name: str = "document.md",
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[MarkdownIngestOptions] = None,
+    metadata: dict[str, Any] | None = None,
+    opts: MarkdownIngestOptions | None = None,
 ) -> BlockGraph:
     """
     Graph-native ingestion (preferred for new pipelines):

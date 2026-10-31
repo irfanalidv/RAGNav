@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
@@ -17,9 +17,9 @@ def ingest_slack_messages_graph(
     messages: list[dict[str, Any]],
     *,
     name: str = "slack.json",
-    channel: Optional[str] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[ChatIngestOptions] = None,
+    channel: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    opts: ChatIngestOptions | None = None,
 ) -> BlockGraph:
     """
     Slack-like message list → BlockGraph

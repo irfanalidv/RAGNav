@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 
 class ConfidenceLevel(str, Enum):
@@ -35,7 +35,7 @@ BlockType = Literal[
 @dataclass(frozen=True)
 class Document:
     doc_id: str
-    source: Optional[str] = None
+    source: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -45,7 +45,7 @@ class Block:
     doc_id: str
     type: BlockType
     text: str
-    parent_id: Optional[str] = None
+    parent_id: str | None = None
     heading_path: tuple[str, ...] = ()
     anchors: dict[str, Any] = field(default_factory=dict)  # page/line/url offsets etc.
     metadata: dict[str, Any] = field(default_factory=dict)  # author, timestamp, channel, etc.

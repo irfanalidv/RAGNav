@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
 
 from .base import LLMClient
 
@@ -22,7 +22,7 @@ class InstrumentedLLMClient(LLMClient):
     stats: LLMStats = field(default_factory=LLMStats)
 
     def chat(
-        self, *, messages: list[dict[str, str]], model: Optional[str] = None, temperature: float = 0
+        self, *, messages: list[dict[str, str]], model: str | None = None, temperature: float = 0
     ) -> str:
         t0 = time.perf_counter()
         try:
@@ -31,7 +31,7 @@ class InstrumentedLLMClient(LLMClient):
             self.stats.chat_calls += 1
             self.stats.chat_ms += (time.perf_counter() - t0) * 1000.0
 
-    def embed(self, *, inputs: Iterable[str], model: Optional[str] = None) -> list[list[float]]:
+    def embed(self, *, inputs: Iterable[str], model: str | None = None) -> list[list[float]]:
         items = list(inputs)
         t0 = time.perf_counter()
         try:

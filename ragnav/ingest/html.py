@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from ..exceptions import RAGNavIngestError
 from ..graph import BlockGraph, Edge
@@ -22,9 +22,9 @@ def ingest_html_string_graph(
     html: str,
     *,
     name: str = "page.html",
-    url: Optional[str] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[HtmlIngestOptions] = None,
+    url: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    opts: HtmlIngestOptions | None = None,
 ) -> BlockGraph:
     """
     HTML → BlockGraph

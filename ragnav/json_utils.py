@@ -4,7 +4,6 @@ import json
 import re
 from typing import Any
 
-
 _FENCED_JSON_RE = re.compile(r"```json\s*(.*?)\s*```", re.DOTALL | re.IGNORECASE)
 
 

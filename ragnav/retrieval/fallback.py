@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ..llm.base import LLMClient
 from ..models import ConfidenceLevel, RetrievalResult
@@ -53,7 +53,7 @@ class QueryFallback:
         self,
         retriever: RAGNavRetriever,
         llm: LLMClient,
-        config: Optional[FallbackConfig] = None,
+        config: FallbackConfig | None = None,
     ):
         self._retriever = retriever
         self._llm = llm

@@ -1,7 +1,7 @@
 from .inline_citations import (
     CitedAnswer,
-    build_cited_context,
     answer_with_inline_citations,
+    build_cited_context,
     validate_inline_citations,
 )
 

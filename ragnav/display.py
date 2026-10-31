@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import textwrap
-from typing import Any, Optional
+from typing import Any
 
 from .models import Block
 
@@ -32,7 +32,7 @@ def create_node_mapping(blocks: list[Block]) -> dict[str, dict[str, Any]]:
     return out
 
 
-def print_tree(blocks: list[Block], *, max_blocks: Optional[int] = 60) -> None:
+def print_tree(blocks: list[Block], *, max_blocks: int | None = 60) -> None:
     """Print a tree-like view derived from each block's ``heading_path``."""
     shown = blocks if max_blocks is None else blocks[:max_blocks]
     for b in shown:

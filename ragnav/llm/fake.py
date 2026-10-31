@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..cost import CostTracker
@@ -21,14 +22,14 @@ class FakeLLMClient:
 
     def __init__(
         self,
-        cfg: Optional[FakeLLMConfig] = None,
-        cost_tracker: Optional["CostTracker"] = None,
+        cfg: FakeLLMConfig | None = None,
+        cost_tracker: CostTracker | None = None,
     ):
         self.cfg = cfg or FakeLLMConfig()
         self.cost_tracker = cost_tracker
 
     def chat(
-        self, *, messages: list[dict[str, str]], model: Optional[str] = None, temperature: float = 0
+        self, *, messages: list[dict[str, str]], model: str | None = None, temperature: float = 0
     ) -> str:
         from ..cost import estimate_tokens_from_text
 
@@ -51,7 +52,7 @@ class FakeLLMClient:
             )
         return text
 
-    def embed(self, *, inputs: Iterable[str], model: Optional[str] = None) -> list[list[float]]:
+    def embed(self, *, inputs: Iterable[str], model: str | None = None) -> list[list[float]]:
         out: list[list[float]] = []
         for text in inputs:
             h = hashlib.sha256((text or "").encode("utf-8")).digest()

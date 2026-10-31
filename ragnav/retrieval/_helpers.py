@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from ..graph import Edge, EdgeType
 from ..models import Block, ConfidenceLevel, Document, RetrievalResult
@@ -190,9 +191,9 @@ def _expand_graph(
 def _allowed_by_constraints(
     *,
     block: Block,
-    doc: Optional[Document],
-    required_doc_metadata: Optional[dict[str, Any]],
-    principal: Optional[str],
+    doc: Document | None,
+    required_doc_metadata: dict[str, Any] | None,
+    principal: str | None,
 ) -> bool:
     if required_doc_metadata and doc is not None:
         for k, v in required_doc_metadata.items():

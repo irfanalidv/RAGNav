@@ -7,9 +7,9 @@ from typing import Any
 
 from ragnav.eval import EvalCase, score_retrieval
 from ragnav.graphrag import EntityGraphRetriever, EntityGraphRetrieverConfig, build_entity_graph
+from ragnav.ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
 from ragnav.llm.fake import FakeLLMClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
 
 
 def _load_pdfs(root: Path) -> list[Path]:

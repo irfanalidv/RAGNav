@@ -19,14 +19,15 @@ import random
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Allow `python benchmarks/squad_benchmark.py` from repo root
 _BENCH_DIR = Path(__file__).resolve().parent
 if str(_BENCH_DIR) not in sys.path:
     sys.path.insert(0, str(_BENCH_DIR))
 
-from _runner import print_table, score as retrieval_score  # noqa: E402
+from _runner import print_table  # noqa: E402
+from _runner import score as retrieval_score
 
 
 def _doc_id_for_context(context: str) -> str:
@@ -34,7 +35,8 @@ def _doc_id_for_context(context: str) -> str:
 
 
 def _build_index_and_retriever():
-    from ragnav import RAGNavIndex, __version__ as ragnav_version
+    from ragnav import RAGNavIndex
+    from ragnav import __version__ as ragnav_version
     from ragnav.llm.fake import FakeLLMClient
     from ragnav.retrieval import RAGNavRetriever
 
@@ -73,7 +75,7 @@ def _unique_passages(sample_rows: list[dict]) -> tuple[list[Any], list[Any]]:
     return documents, blocks
 
 
-def _gold_block_id(row: dict) -> Optional[str]:
+def _gold_block_id(row: dict) -> str | None:
     ctx = row["context"]
     texts = row.get("answers", {}).get("text") or []
     if not texts:

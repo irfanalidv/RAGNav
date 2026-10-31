@@ -11,7 +11,7 @@ edges so structure-aware retrieval and expansion behave like they do on markdown
 from __future__ import annotations
 
 import re
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal
 
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
@@ -31,7 +31,7 @@ _T4_DEF = re.compile(r'^\s*"[A-Z][A-Za-z]+"\s+means\b', re.I)
 # Paragraphs shorter than this are prepended to the following block instead of standing alone.
 MIN_BLOCK_CHARS = 80
 
-_ClassifyResult = Union[Literal["blank"], Literal["body"], tuple[int, str]]
+_ClassifyResult = Literal["blank", "body"] | tuple[int, str]
 
 
 def _classify_line(line: str) -> _ClassifyResult:
@@ -53,7 +53,7 @@ def ingest_legal(
     text: str,
     *,
     doc_id: str,
-    metadata: Optional[dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> tuple[Document, list[Block], BlockGraph]:
     """
     Parse legal or numbered prose into structured blocks with parent-child edges.
@@ -84,7 +84,7 @@ def ingest_legal(
     def heading_path_tuple() -> tuple[str, ...]:
         return tuple(t[1] for t in stack)
 
-    def body_parent_id() -> Optional[str]:
+    def body_parent_id() -> str | None:
         return stack[-1][2] if stack else None
 
     def flush_paragraph() -> None:

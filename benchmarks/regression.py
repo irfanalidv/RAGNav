@@ -11,9 +11,9 @@ from ragnav.cache.sqlite_cache import EmbeddingCache, RetrievalCache, SqliteCach
 from ragnav.graph import Edge
 from ragnav.ingest.markdown import ingest_markdown_string
 from ragnav.llm.fake import FakeLLMClient
+from ragnav.models import Block, Document
 from ragnav.observability import Trace
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.models import Block, Document
 
 
 def test_acl_filtering() -> None:

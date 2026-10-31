@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .exceptions import BudgetExceededError
 
@@ -39,7 +38,7 @@ class CostReport:
     total_input_tokens: int
     total_output_tokens: int
     total_cost_usd: float
-    budget_usd: Optional[float]
+    budget_usd: float | None
     calls: int
 
     def summary(self) -> str:
@@ -63,7 +62,7 @@ class CostTracker:
     updated spend.
     """
 
-    budget_usd: Optional[float] = None
+    budget_usd: float | None = None
     _calls: int = field(default=0, repr=False)
     _input_tokens: int = field(default=0, repr=False)
     _output_tokens: int = field(default=0, repr=False)

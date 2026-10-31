@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from .models import Block, Document
-
 
 EdgeType = Literal[
     "parent",  # hierarchy (e.g., heading -> paragraph)
@@ -59,13 +58,13 @@ class BlockGraph:
             self._out.setdefault(e.src, []).append(e)
             self._in.setdefault(e.dst, []).append(e)
 
-    def out_edges(self, block_id: str, *, types: Optional[set[EdgeType]] = None) -> list[Edge]:
+    def out_edges(self, block_id: str, *, types: set[EdgeType] | None = None) -> list[Edge]:
         edges = self._out.get(block_id, [])
         if types is None:
             return list(edges)
         return [e for e in edges if e.type in types]
 
-    def in_edges(self, block_id: str, *, types: Optional[set[EdgeType]] = None) -> list[Edge]:
+    def in_edges(self, block_id: str, *, types: set[EdgeType] | None = None) -> list[Edge]:
         edges = self._in.get(block_id, [])
         if types is None:
             return list(edges)
@@ -75,7 +74,7 @@ class BlockGraph:
         self,
         block_id: str,
         *,
-        types: Optional[set[EdgeType]] = None,
+        types: set[EdgeType] | None = None,
         include_incoming: bool = True,
         include_outgoing: bool = True,
         max_degree: int = 50,

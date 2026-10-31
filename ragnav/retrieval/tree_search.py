@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from ..graph import EdgeType
 from ..json_utils import extract_json
@@ -53,13 +53,13 @@ def tree_search_llm(
     retriever: Any,
     query: str,
     *,
-    allowed_doc_ids: Optional[set[str]] = None,
+    allowed_doc_ids: set[str] | None = None,
     max_nodes: int = 220,
     max_steps: int = 3,
     nodes_per_step: int = 8,
     expand_structure: bool = True,
     expand_graph: bool = False,
-    graph_edge_types: Optional[set[EdgeType]] = None,
+    graph_edge_types: set[EdgeType] | None = None,
     graph_hops: int = 1,
     temperature: float = 0,
 ) -> RetrievalResult:
@@ -178,7 +178,7 @@ def hybrid_tree_search_llm(
     retriever: Any,
     query: str,
     *,
-    allowed_doc_ids: Optional[set[str]] = None,
+    allowed_doc_ids: set[str] | None = None,
     k_candidates: int = 80,
     use_vectors: bool = True,
     k_bm25: int = 40,

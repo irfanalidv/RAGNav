@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-from typing import Optional
 
 # Kept in a dedicated module so paper-mode PDF ingest isn't "everywhere".
 
@@ -36,7 +35,7 @@ MENTION_SEC_RE = re.compile(r"\bsection\s*(\d+(?:\.\d+)*)\b", re.IGNORECASE)
 MENTION_APP_RE = re.compile(r"\bappendix\s*([A-Z])\b", re.IGNORECASE)
 
 
-def is_heading_line(line: str) -> tuple[int, str, Optional[str]]:
+def is_heading_line(line: str) -> tuple[int, str, str | None]:
     """
     Returns (level, title, section_number).
     Heuristics only: good enough for scientific papers extracted as text.

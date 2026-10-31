@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from ..models import Block
 from ..retrieval import RAGNavRetriever
@@ -96,7 +96,7 @@ class EntityGraphRetriever:
         query: str,
         *,
         rag_retriever: RAGNavRetriever,
-        allowed_doc_ids: Optional[set[str]] = None,
+        allowed_doc_ids: set[str] | None = None,
         k_final: int = 10,
     ):
         return rag_retriever.retrieve(query, allowed_doc_ids=allowed_doc_ids, k_final=k_final)

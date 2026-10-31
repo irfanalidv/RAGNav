@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -57,7 +57,7 @@ class VectorIndex:
     blocks: list[Block] = field(default_factory=list)
     block_doc_ids: list[str] = field(default_factory=list)
     vectors: np.ndarray = field(default_factory=lambda: np.zeros((0, 1), dtype=np.float32))
-    model_name: Optional[str] = None
+    model_name: str | None = None
     _backend: str = field(default="external", repr=False)
 
     @property
@@ -73,10 +73,10 @@ class VectorIndex:
         texts: list[str],
         ids: list[str],
         *,
-        blocks: Optional[list[Block]] = None,
-        embedding_cache: Optional[EmbeddingCache] = None,
+        blocks: list[Block] | None = None,
+        embedding_cache: EmbeddingCache | None = None,
         embed_batch_size: int = 64,
-        trace: Optional[Trace] = None,
+        trace: Trace | None = None,
     ) -> None:
         """Embed ``texts`` with sentence-transformers and store rows aligned with ``ids`` / ``blocks``."""
         if len(texts) != len(ids):
@@ -97,7 +97,7 @@ class VectorIndex:
 
         mname = self.model_name or "all-MiniLM-L6-v2"
         self.model_name = mname
-        embeddings: list[Optional[list[float]]] = [None] * len(texts)
+        embeddings: list[list[float] | None] = [None] * len(texts)
 
         for i in range(0, len(texts), embed_batch_size):
             chunk = texts[i : i + embed_batch_size]
@@ -193,7 +193,7 @@ class VectorIndex:
         query_vec: list[float],
         *,
         k: int = 20,
-        allowed_doc_ids: Optional[set[str]] = None,
+        allowed_doc_ids: set[str] | None = None,
     ) -> list[tuple[Block, float]]:
         """Search with an externally supplied query vector (same dimension as stored rows)."""
         if not self.has_fitted:
@@ -215,7 +215,7 @@ class VectorIndex:
         query: str,
         *,
         k: int = 20,
-        allowed_doc_ids: Optional[set[str]] = None,
+        allowed_doc_ids: set[str] | None = None,
     ) -> list[tuple[Block, float]]:
         """Search using the same sentence-transformers model as index build (cosine on L2-normalized rows)."""
         if not self.has_fitted:
@@ -241,9 +241,9 @@ class VectorIndex:
         self,
         query: str,
         *,
-        query_embedding: Optional[list[float]],
+        query_embedding: list[float] | None,
         k: int,
-        allowed_doc_ids: Optional[set[str]] = None,
+        allowed_doc_ids: set[str] | None = None,
     ) -> list[tuple[Block, float]]:
         """Dispatch to text or vector search depending on how the index was built."""
         if self.uses_sentence_transformers:

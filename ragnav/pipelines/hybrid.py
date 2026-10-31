@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
 
+from ..cache.sqlite_cache import EmbeddingCache, RetrievalCache
 from ..env import load_env
 from ..ingest.pdf import PdfIngestOptions, ingest_pdf_bytes
 from ..llm.base import LLMClient
 from ..retrieval import RAGNavIndex, RAGNavRetriever
 from .vectorless import download_pdf
-from ..cache.sqlite_cache import EmbeddingCache, RetrievalCache
 
 
 @dataclass(frozen=True)
@@ -29,9 +28,9 @@ def hybrid_rag_pdf_url(
     pdf_url: str,
     llm: LLMClient,
     cfg: HybridRagConfig = HybridRagConfig(),
-    cache_path: Optional[Union[str, Path]] = Path("data") / "document.pdf",
-    embedding_cache: Optional[EmbeddingCache] = None,
-    retrieval_cache: Optional[RetrievalCache] = None,
+    cache_path: str | Path | None = Path("data") / "document.pdf",
+    embedding_cache: EmbeddingCache | None = None,
+    retrieval_cache: RetrievalCache | None = None,
 ) -> tuple[RAGNavRetriever, str]:
     """
     Hybrid RAG over a PDF URL:
@@ -66,7 +65,7 @@ def hybrid_answer(
     retriever: RAGNavRetriever,
     llm: LLMClient,
     cfg: HybridRagConfig,
-    retrieval_cache: Optional[RetrievalCache] = None,
+    retrieval_cache: RetrievalCache | None = None,
 ) -> str:
     hits = retriever.retrieve_raw(
         query,

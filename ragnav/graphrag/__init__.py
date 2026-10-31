@@ -1,6 +1,6 @@
 from .entities import Entity, EntityType, Relation, RelationType
-from .graph import EntityGraph
 from .extract import build_entity_graph
+from .graph import EntityGraph
 from .retriever import EntityGraphRetriever, EntityGraphRetrieverConfig
 
 __all__ = [

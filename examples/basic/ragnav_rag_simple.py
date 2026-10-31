@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from ragnav.ingest.markdown import ingest_markdown_string
+from ragnav.display import print_tree, print_wrapped
 from ragnav.env import load_env
+from ragnav.ingest.markdown import ingest_markdown_string
 from ragnav.llm.mistral import MistralClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.display import print_tree, print_wrapped
-
 
 MARKDOWN = """
 # DeepSeek-R1: Incentivizing Reasoning Capabilities

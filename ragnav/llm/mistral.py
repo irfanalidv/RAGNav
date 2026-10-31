@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any
 
 from ..cost import CostTracker, estimate_tokens_from_text
 from ..exceptions import RAGNavLLMError
@@ -24,9 +25,7 @@ class MistralClient(LLMClient):
       pip install -e ".[mistral]"
     """
 
-    def __init__(
-        self, cfg: Optional[MistralConfig] = None, cost_tracker: Optional[CostTracker] = None
-    ):
+    def __init__(self, cfg: MistralConfig | None = None, cost_tracker: CostTracker | None = None):
         try:
             from dotenv import load_dotenv
         except Exception:
@@ -36,7 +35,11 @@ class MistralClient(LLMClient):
             load_dotenv()
 
         try:
-            from mistralai import Mistral
+            # mistralai >= 2 moved the client under `mistralai.client`; 1.x exports it at the top.
+            try:
+                from mistralai.client import Mistral
+            except ImportError:
+                from mistralai import Mistral  # type: ignore[no-redef,attr-defined]
         except Exception as e:
             raise RAGNavLLMError(
                 'Missing optional dependency `mistralai`. Install with: pip install -e ".[mistral]"'
@@ -52,7 +55,7 @@ class MistralClient(LLMClient):
         self.cost_tracker = cost_tracker
 
     def chat(
-        self, *, messages: list[dict[str, str]], model: Optional[str] = None, temperature: float = 0
+        self, *, messages: list[dict[str, str]], model: str | None = None, temperature: float = 0
     ) -> str:
         model_name = model or self.cfg.chat_model
         if self.cost_tracker is not None:
@@ -72,7 +75,7 @@ class MistralClient(LLMClient):
             )
         return text
 
-    def embed(self, *, inputs: Iterable[str], model: Optional[str] = None) -> list[list[float]]:
+    def embed(self, *, inputs: Iterable[str], model: str | None = None) -> list[list[float]]:
         resp = self._client.embeddings.create(
             model=model or self.cfg.embed_model,
             inputs=list(inputs),

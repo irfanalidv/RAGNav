@@ -4,10 +4,9 @@ import re
 from dataclasses import dataclass
 
 from ..models import Block
+from . import lexicon
 from .entities import Entity, Relation
 from .graph import EntityGraph
-from . import lexicon
-
 
 _TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_\-+/]*")
 

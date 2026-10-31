@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
-from ..llm.base import LLMClient
-from ..retrieval import RAGNavIndex, RAGNavRetriever
-from ..ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
 from ..answering.inline_citations import answer_with_inline_citations
 from ..cache.sqlite_cache import EmbeddingCache
+from ..ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
+from ..llm.base import LLMClient
 from ..net import download_pdf
+from ..retrieval import RAGNavIndex, RAGNavRetriever
 
 
 @dataclass(frozen=True)
@@ -47,10 +47,10 @@ class PaperRAG:
         *,
         llm: LLMClient,
         pdf_name: str = "paper.pdf",
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         cfg: PaperRAGConfig = PaperRAGConfig(),
-        embedding_cache: Optional[EmbeddingCache] = None,
-    ) -> "PaperRAG":
+        embedding_cache: EmbeddingCache | None = None,
+    ) -> PaperRAG:
         doc, blocks, edges = ingest_pdf_bytes_paper(
             pdf_bytes,
             name=pdf_name,
@@ -76,12 +76,12 @@ class PaperRAG:
         *,
         llm: LLMClient,
         pdf_name: str = "paper.pdf",
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         cfg: PaperRAGConfig = PaperRAGConfig(),
-        cache_path: Optional[Union[str, Path]] = Path("data") / "paper.pdf",
-        embedding_cache: Optional[EmbeddingCache] = None,
+        cache_path: str | Path | None = Path("data") / "paper.pdf",
+        embedding_cache: EmbeddingCache | None = None,
         timeout_s: int = 60,
-    ) -> "PaperRAG":
+    ) -> PaperRAG:
         pdf_bytes = download_pdf(pdf_url, out_path=cache_path, timeout_s=timeout_s)
         meta = dict(metadata or {})
         meta.update({"source": "url", "url": pdf_url})
@@ -97,14 +97,14 @@ class PaperRAG:
     @classmethod
     def from_pdf_file(
         cls,
-        path: Union[str, Path],
+        path: str | Path,
         *,
         llm: LLMClient,
-        pdf_name: Optional[str] = None,
-        metadata: Optional[dict[str, Any]] = None,
+        pdf_name: str | None = None,
+        metadata: dict[str, Any] | None = None,
         cfg: PaperRAGConfig = PaperRAGConfig(),
-        embedding_cache: Optional[EmbeddingCache] = None,
-    ) -> "PaperRAG":
+        embedding_cache: EmbeddingCache | None = None,
+    ) -> PaperRAG:
         p = Path(path)
         pdf_bytes = p.read_bytes()
         meta = dict(metadata or {})

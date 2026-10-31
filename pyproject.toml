@@ -1,13 +1,13 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ragnav"
-version = "0.4.0"
+version = "0.5.0"
 description = "Hybrid structure-aware retrieval — BM25 + embeddings + document graph expansion. Runs fully offline, no API key required."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Irfan Ali", email = "irfanali29@hotmail.com" }]
@@ -22,6 +22,12 @@ keywords = [
   "embeddings",
   "sentence-transformers",
   "offline",
+  "vectorless-rag",
+  "document-graph",
+  "reranking",
+  "citations",
+  "llm",
+  "information-retrieval",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -29,12 +35,15 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Text Processing :: Indexing",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
 ]
 
 dependencies = [
@@ -44,7 +53,10 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/irfanalidv/RAGNav"
+Documentation = "https://github.com/irfanalidv/RAGNav#readme"
 Repository = "https://github.com/irfanalidv/RAGNav"
+Issues = "https://github.com/irfanalidv/RAGNav/issues"
+Changelog = "https://github.com/irfanalidv/RAGNav/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 mistral = [
@@ -92,21 +104,23 @@ ragnav = "ragnav.cli:main"
 
 [tool.ruff]
 line-length = 100
-exclude = [
-  ".git",
+target-version = "py310"
+extend-exclude = [
   ".venv_pypi",
-  "build",
-  "dist",
 ]
 
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501", "B008", "B904", "B905", "UP031"]
+
 [tool.ruff.lint.per-file-ignores]
-"benchmarks/regression.py" = ["E402"]
+"benchmarks/*.py" = ["E402"]
 "examples/**/*.py" = ["E402"]
 "cookbook/*.ipynb" = ["E402"]
 
 [tool.black]
 line-length = 100
-target-version = ["py39"]
+target-version = ["py310"]
 
 [tool.setuptools]
 include-package-data = true
@@ -119,7 +133,7 @@ where = ["."]
 include = ["ragnav*"]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 files = ["ragnav"]
 ignore_missing_imports = true
 follow_imports = "skip"

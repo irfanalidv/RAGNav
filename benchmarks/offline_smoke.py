@@ -4,7 +4,6 @@ from ragnav.ingest.markdown import ingest_markdown_string
 from ragnav.llm.fake import FakeLLMClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
 
-
 MARKDOWN = """
 # Doc A
 

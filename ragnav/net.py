@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Union
 
 from .exceptions import RAGNavIngestError
 
 
-def download_bytes(
-    url: str, *, out_path: Optional[Union[str, Path]] = None, timeout_s: int = 60
-) -> bytes:
+def download_bytes(url: str, *, out_path: str | Path | None = None, timeout_s: int = 60) -> bytes:
     """
     Download bytes from a URL with an optional on-disk cache.
 
@@ -32,9 +29,7 @@ def download_bytes(
     return data
 
 
-def download_pdf(
-    url: str, *, out_path: Optional[Union[str, Path]] = None, timeout_s: int = 60
-) -> bytes:
+def download_pdf(url: str, *, out_path: str | Path | None = None, timeout_s: int = 60) -> bytes:
     """
     Convenience wrapper for PDF URLs (arXiv, etc.).
     """

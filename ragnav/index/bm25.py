@@ -2,12 +2,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from rank_bm25 import BM25Okapi
 
 from ..models import Block
-
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
 
@@ -24,13 +22,13 @@ class BM25Index:
     _tokens: list[list[str]]
 
     @classmethod
-    def build(cls, blocks: list[Block]) -> "BM25Index":
+    def build(cls, blocks: list[Block]) -> BM25Index:
         tokens = [_tokenize(b.text) for b in blocks]
         doc_ids = [b.doc_id for b in blocks]
         return cls(blocks=blocks, block_doc_ids=doc_ids, _bm25=BM25Okapi(tokens), _tokens=tokens)
 
     def search(
-        self, query: str, *, k: int = 20, allowed_doc_ids: Optional[set[str]] = None
+        self, query: str, *, k: int = 20, allowed_doc_ids: set[str] | None = None
     ) -> list[tuple[Block, float]]:
         q = _tokenize(query)
         scores = self._bm25.get_scores(q)

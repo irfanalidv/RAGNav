@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .entities import Entity, Relation, RelationType
 
@@ -30,7 +29,7 @@ class EntityGraph:
             self._in.setdefault(r.dst, []).append(r)
 
     def out_relations(
-        self, entity_id: str, *, types: Optional[set[RelationType]] = None
+        self, entity_id: str, *, types: set[RelationType] | None = None
     ) -> list[Relation]:
         rels = self._out.get(entity_id, [])
         if types is None:
@@ -38,7 +37,7 @@ class EntityGraph:
         return [r for r in rels if r.type in types]
 
     def in_relations(
-        self, entity_id: str, *, types: Optional[set[RelationType]] = None
+        self, entity_id: str, *, types: set[RelationType] | None = None
     ) -> list[Relation]:
         rels = self._in.get(entity_id, [])
         if types is None:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Iterable, Optional, Protocol
+from collections.abc import Iterable
+from typing import Protocol
 
 
 class LLMClient(Protocol):
@@ -15,7 +16,7 @@ class LLMClient(Protocol):
         self,
         *,
         messages: list[dict[str, str]],
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0,
     ) -> str: ...
 
@@ -23,5 +24,5 @@ class LLMClient(Protocol):
         self,
         *,
         inputs: Iterable[str],
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> list[list[float]]: ...

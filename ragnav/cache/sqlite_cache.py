@@ -5,8 +5,9 @@ import json
 import os
 import sqlite3
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any
 
 import numpy as np
 
@@ -16,7 +17,7 @@ from ..exceptions import RAGNavCacheError
 @dataclass
 class SqliteCacheConfig:
     db_path: str
-    ttl_seconds: Optional[int] = None
+    ttl_seconds: int | None = None
 
 
 class SqliteKV:
@@ -51,7 +52,7 @@ class SqliteKV:
             return False
         return (time.time() - stored_at) > ttl
 
-    def get(self, key: str) -> Optional[bytes]:
+    def get(self, key: str) -> bytes | None:
         try:
             row = self._conn.execute(
                 "SELECT stored_at, value FROM kv WHERE key = ?", (key,)
@@ -101,11 +102,11 @@ class EmbeddingCache:
     def __init__(self, kv: SqliteKV) -> None:
         self._kv = kv
 
-    def _key(self, model: Optional[str], text: str) -> str:
+    def _key(self, model: str | None, text: str) -> str:
         m = model or "default"
         return f"emb:{m}:{_text_fingerprint(text)}"
 
-    def get_many(self, *, model: Optional[str], texts: list[str]) -> dict[int, list[float]]:
+    def get_many(self, *, model: str | None, texts: list[str]) -> dict[int, list[float]]:
         out: dict[int, list[float]] = {}
         for i, t in enumerate(texts):
             raw = self._kv.get(self._key(model, t))
@@ -130,7 +131,7 @@ class EmbeddingCache:
     def set_many(
         self,
         *,
-        model: Optional[str],
+        model: str | None,
         texts: list[str],
         embeddings: list[list[float]],
     ) -> None:
@@ -156,7 +157,7 @@ class RetrievalCache:
         h = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         return f"ret:{h}"
 
-    def get(self, payload: dict[str, Any]) -> Optional[list[str]]:
+    def get(self, payload: dict[str, Any]) -> list[str] | None:
         raw = self._kv.get(self._payload_key(payload))
         if raw is None:
             return None

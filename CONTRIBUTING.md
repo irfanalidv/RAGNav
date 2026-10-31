@@ -43,7 +43,7 @@ pytest tests/unit/ -q
 
 ## Code style
 
-- Format with **Black** and lint with **Ruff**, line length **100** (see `pyproject.toml`).
+- Format and lint with **Ruff** (`ruff format .`, `ruff check .`), line length **100** (see `pyproject.toml`).
 - Docstrings: explain **why** something exists or behaves a certain way, not a restatement of the signature or obvious control flow.
 
 ## Release checklist
@@ -66,7 +66,7 @@ grep -rn "except:" ragnav/ --include="*.py"
 grep -rn "OPENAI_API_KEY\|sk-\|password\s*=" ragnav/ --include="*.py"
 
 # 5. Ruff clean
-ruff check ragnav/
+ruff check . && ruff format --check .
 
 # 6. Build
 rm -rf dist/ build/

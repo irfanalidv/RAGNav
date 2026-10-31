@@ -3,9 +3,10 @@ from __future__ import annotations
 import io
 import json
 import time
+from collections.abc import Callable
 from contextlib import redirect_stdout
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -63,14 +64,14 @@ def main() -> None:
     Run:
       python3 -m benchmarks.scorecard
     """
-    from .offline_smoke import main as offline_smoke
-    from .regression import main as regression
-    from .paper_eval import main as paper_eval
+    from .citation_eval import main as citation_eval
     from .entity_eval import main as entity_eval
     from .entity_eval_excerpt import main as entity_eval_excerpt
-    from .security_eval import main as security_eval
-    from .citation_eval import main as citation_eval
+    from .offline_smoke import main as offline_smoke
+    from .paper_eval import main as paper_eval
     from .paper_pdf_suite import main as paper_pdf_suite
+    from .regression import main as regression
+    from .security_eval import main as security_eval
 
     suites = [
         ("offline_smoke", offline_smoke),

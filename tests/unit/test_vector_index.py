@@ -32,7 +32,7 @@ def test_from_embeddings_ranks_by_cosine():
     blocks = _blocks_10()
     dim = 8
     embeddings = []
-    for i, b in enumerate(blocks):
+    for i, _b in enumerate(blocks):
         v = [0.0] * dim
         v[i % dim] = 1.0
         embeddings.append(v)

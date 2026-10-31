@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from email import policy
 from email.parser import BytesParser
-from typing import Any, Optional
+from typing import Any
 
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
@@ -19,8 +19,8 @@ def ingest_eml_bytes_graph(
     data: bytes,
     *,
     name: str = "message.eml",
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[EmailIngestOptions] = None,
+    metadata: dict[str, Any] | None = None,
+    opts: EmailIngestOptions | None = None,
 ) -> BlockGraph:
     """
     RFC822 .eml → BlockGraph

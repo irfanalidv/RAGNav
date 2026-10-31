@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ragnav.display import print_wrapped
 from ragnav.env import load_env
 from ragnav.graphrag import EntityGraphRetriever, EntityGraphRetrieverConfig, build_entity_graph
 from ragnav.ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
 from ragnav.llm.mistral import MistralClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.display import print_wrapped
-
 
 PDF_URL = "https://arxiv.org/pdf/2507.13334.pdf"
 

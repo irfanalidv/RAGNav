@@ -4,13 +4,11 @@ from pathlib import Path
 
 import requests
 
+from ragnav.display import print_wrapped
 from ragnav.env import load_env
-from ragnav.ingest.pdf import ingest_pdf_bytes
-from ragnav.ingest.pdf import PdfIngestOptions
+from ragnav.ingest.pdf import PdfIngestOptions, ingest_pdf_bytes
 from ragnav.llm.mistral import MistralClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.display import print_wrapped
-
 
 PDF_URL = "https://arxiv.org/pdf/2507.13334.pdf"
 

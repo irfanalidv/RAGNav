@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
+from ..exceptions import RAGNavIngestError
 from ..graph import BlockGraph, Edge
 from ..models import Block, Document
-from ..exceptions import RAGNavIngestError
 from ..papers import pdf_heuristics as paper
 
 
 @dataclass(frozen=True)
 class PdfIngestOptions:
     doc_id_prefix: str = "pdf:"
-    max_pages: Optional[int] = None
+    max_pages: int | None = None
     # If true, try to split pages into heading/paragraph/caption blocks and
     # emit cross-reference edges (Figure/Table/Section/Appendix).
     paper_mode: bool = False
@@ -22,8 +22,8 @@ def ingest_pdf_bytes(
     data: bytes,
     *,
     name: str = "document.pdf",
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[PdfIngestOptions] = None,
+    metadata: dict[str, Any] | None = None,
+    opts: PdfIngestOptions | None = None,
 ) -> tuple[Document, list[Block]]:
     """
     Minimal PDF ingestion:
@@ -83,8 +83,8 @@ def ingest_pdf_bytes_paper(
     data: bytes,
     *,
     name: str = "document.pdf",
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[PdfIngestOptions] = None,
+    metadata: dict[str, Any] | None = None,
+    opts: PdfIngestOptions | None = None,
 ) -> tuple[Document, list[Block], list[Edge]]:
     """
     Paper-oriented PDF ingestion:
@@ -127,7 +127,7 @@ def ingest_pdf_bytes_paper(
     def current_heading_path() -> tuple[str, ...]:
         return tuple([t for _, t, _ in stack])
 
-    def current_parent_id() -> Optional[str]:
+    def current_parent_id() -> str | None:
         return stack[-1][2] if stack else None
 
     block_counter = 0
@@ -139,9 +139,9 @@ def ingest_pdf_bytes_paper(
         page: int,
         line_start: int,
         line_end: int,
-        parent_id: Optional[str],
+        parent_id: str | None,
         heading_path: tuple[str, ...],
-        meta: Optional[dict[str, Any]] = None,
+        meta: dict[str, Any] | None = None,
     ) -> Block:
         nonlocal block_counter
         bid = f"{doc.doc_id}#b{block_counter}"
@@ -159,7 +159,7 @@ def ingest_pdf_bytes_paper(
         blocks.append(b)
         return b
 
-    prev_block_id: Optional[str] = None
+    prev_block_id: str | None = None
 
     for page_idx in range(max_pages):
         page_num = page_idx + 1
@@ -352,9 +352,9 @@ def ingest_pdf_bytes_paper(
 def ingest_pdf_file(
     path: str,
     *,
-    name: Optional[str] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[PdfIngestOptions] = None,
+    name: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    opts: PdfIngestOptions | None = None,
 ) -> tuple[Document, list[Block]]:
     with open(path, "rb") as f:
         data = f.read()
@@ -364,9 +364,9 @@ def ingest_pdf_file(
 def ingest_pdf_file_paper(
     path: str,
     *,
-    name: Optional[str] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[PdfIngestOptions] = None,
+    name: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    opts: PdfIngestOptions | None = None,
 ) -> tuple[Document, list[Block], list[Edge]]:
     with open(path, "rb") as f:
         data = f.read()
@@ -379,8 +379,8 @@ def ingest_pdf_bytes_graph(
     data: bytes,
     *,
     name: str = "document.pdf",
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[PdfIngestOptions] = None,
+    metadata: dict[str, Any] | None = None,
+    opts: PdfIngestOptions | None = None,
 ) -> BlockGraph:
     """
     Graph-native PDF ingestion (preferred for new pipelines).
@@ -415,9 +415,9 @@ def ingest_pdf_bytes_graph(
 def ingest_pdf_file_graph(
     path: str,
     *,
-    name: Optional[str] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    opts: Optional[PdfIngestOptions] = None,
+    name: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    opts: PdfIngestOptions | None = None,
 ) -> BlockGraph:
     with open(path, "rb") as f:
         data = f.read()

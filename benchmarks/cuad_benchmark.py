@@ -26,7 +26,7 @@ import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -124,7 +124,7 @@ def _evaluate(
     vec_w: float,
     expand_structure: bool,
     expand_graph: bool,
-    graph_edge_types: Optional[set[str]],
+    graph_edge_types: set[str] | None,
     fusion: str = "rrf",
 ) -> tuple[
     list[tuple[list[str], frozenset[str]]],
@@ -183,7 +183,8 @@ def _system_block(model_name: str) -> str:
 
 
 def main() -> int:
-    from ragnav import RAGNavIndex, __version__ as ragnav_version
+    from ragnav import RAGNavIndex
+    from ragnav import __version__ as ragnav_version
     from ragnav.llm.fake import FakeLLMClient
     from ragnav.retrieval import RAGNavRetriever
 

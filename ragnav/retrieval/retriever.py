@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, Optional
+from typing import TYPE_CHECKING, Any, Literal
 
 from ..cache.sqlite_cache import RetrievalCache
 from ..exceptions import RAGNavLLMError
@@ -30,9 +30,9 @@ from .index import RAGNavIndex
 @dataclass
 class RAGNavRetriever:
     index: RAGNavIndex
-    llm: Optional[LLMClient] = None
-    reranker: Optional["CrossEncoderReranker"] = None
-    cost_tracker: Optional["CostTracker"] = None
+    llm: LLMClient | None = None
+    reranker: CrossEncoderReranker | None = None
+    cost_tracker: CostTracker | None = None
 
     def __post_init__(self):
         if self.llm is None:
@@ -65,23 +65,23 @@ class RAGNavRetriever:
         k_bm25: int = 30,
         k_vec: int = 30,
         k_final: int = 12,
-        top_k: Optional[int] = None,
+        top_k: int | None = None,
         w_bm25: float = 0.5,
         w_vec: float = 0.5,
-        bm25_weight: Optional[float] = None,
-        vector_weight: Optional[float] = None,
+        bm25_weight: float | None = None,
+        vector_weight: float | None = None,
         expand_structure: bool = True,
-        allowed_doc_ids: Optional[set[str]] = None,
-        allowed_doc_pages: Optional[dict[str, set[int]]] = None,
+        allowed_doc_ids: set[str] | None = None,
+        allowed_doc_pages: dict[str, set[int]] | None = None,
         use_vectors: bool = True,
-        required_doc_metadata: Optional[dict[str, Any]] = None,
-        principal: Optional[str] = None,
+        required_doc_metadata: dict[str, Any] | None = None,
+        principal: str | None = None,
         expand_graph: bool = False,
-        graph_edge_types: Optional[set[EdgeType]] = None,
+        graph_edge_types: set[EdgeType] | None = None,
         graph_hops: int = 1,
-        retrieval_cache: Optional[RetrievalCache] = None,
-        content_policy: Optional[ContentPolicy] = None,
-        trace: Optional[Trace] = None,
+        retrieval_cache: RetrievalCache | None = None,
+        content_policy: ContentPolicy | None = None,
+        trace: Trace | None = None,
         fusion: Literal["rrf", "weighted"] = "rrf",
     ) -> RetrievalResult:
         """
@@ -143,7 +143,7 @@ class RAGNavRetriever:
         if use_vectors and self.index.has_vectors and k_vec > 0 and w_vec > 0:
             vidx = self.index.vectors
             assert vidx is not None
-            qemb: Optional[list[float]] = None
+            qemb: list[float] | None = None
             if not vidx.uses_sentence_transformers:
                 if trace:
                     with trace.span("embed_query_ms"):
@@ -278,8 +278,8 @@ class RAGNavRetriever:
         self,
         query: str,
         *,
-        allowed_doc_ids: Optional[set[str]] = None,
-        allowed_doc_pages: Optional[dict[str, set[int]]] = None,
+        allowed_doc_ids: set[str] | None = None,
+        allowed_doc_pages: dict[str, set[int]] | None = None,
         k_bm25: int = 30,
         k_vec: int = 30,
         k_final: int = 8,
@@ -287,9 +287,9 @@ class RAGNavRetriever:
         w_vec: float = 0.5,
         use_vectors: bool = True,
         expand_structure: bool = True,
-        retrieval_cache: Optional[RetrievalCache] = None,
-        content_policy: Optional[ContentPolicy] = None,
-        trace: Optional[Trace] = None,
+        retrieval_cache: RetrievalCache | None = None,
+        content_policy: ContentPolicy | None = None,
+        trace: Trace | None = None,
         max_blocks: int = 8,
     ) -> list[dict[str, Any]]:
         """
@@ -337,15 +337,15 @@ class RAGNavRetriever:
         self,
         query: str,
         *,
-        allowed_doc_ids: Optional[set[str]] = None,
+        allowed_doc_ids: set[str] | None = None,
         top_pages: int = 4,
         follow_refs: bool = True,
         include_next: bool = True,
         graph_hops: int = 1,
         use_vectors: bool = True,
         k_final: int = 10,
-        content_policy: Optional[ContentPolicy] = None,
-        retrieval_cache: Optional[RetrievalCache] = None,
+        content_policy: ContentPolicy | None = None,
+        retrieval_cache: RetrievalCache | None = None,
     ) -> RetrievalResult:
         """
         Paper-optimized retrieval:

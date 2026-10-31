@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from ragnav.ingest.markdown import ingest_markdown_string
+from ragnav.display import print_wrapped
 from ragnav.env import load_env
+from ragnav.ingest.markdown import ingest_markdown_string
 from ragnav.llm.mistral import MistralClient
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
-from ragnav.display import print_wrapped
-
 
 DOC_FINANCE = """
 # ACME Corp Q1 FY25 Earnings (Excerpt)

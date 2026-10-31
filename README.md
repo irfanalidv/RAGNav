@@ -1,13 +1,19 @@
+<div align="center">
+
 # RAGNav
+
+**Hybrid, structure-aware retrieval for RAG: BM25 + embeddings + document-graph expansion. Runs fully offline, no API key required.**
 
 [![PyPI](https://img.shields.io/pypi/v/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![Python](https://img.shields.io/pypi/pyversions/ragnav.svg)](https://pypi.org/project/ragnav/)
-[![License: MIT](https://img.shields.io/pypi/l/ragnav.svg)](https://pypi.org/project/ragnav/)
 [![CI](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml/badge.svg)](https://github.com/irfanalidv/RAGNav/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/irfanalidv/RAGNav/branch/main/graph/badge.svg)](https://codecov.io/gh/irfanalidv/RAGNav)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/ragnav?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/ragnav)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/irfanalidv/RAGNav/blob/main/LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/irfanalidv/RAGNav/blob/main/cookbook/ragnav_quickstart.ipynb)
+
+</div>
 
 **Production-grade hybrid retrieval** — BM25 plus dense embeddings plus optional structure-aware expansion. With **sentence-transformers** (default), you can index and query **without any API key** or separate LLM client for the common path below.
 
@@ -129,7 +135,7 @@ RAGNav is **not affiliated** with the vendors above. If you notice missing or in
 
 ## Install
 
-From [PyPI](https://pypi.org/project/ragnav/) (recommended):
+Requires **Python 3.10+**. From [PyPI](https://pypi.org/project/ragnav/) (recommended):
 
 ```bash
 pip install ragnav[embeddings]
@@ -308,6 +314,7 @@ from ragnav.llm.mistral import MistralClient
 # Mistral (built-in) — MISTRAL_API_KEY
 llm = MistralClient()
 
+
 # OpenAI — pip install openai — OPENAI_API_KEY
 class OpenAIClient(LLMClient):
     def __init__(self):
@@ -327,6 +334,7 @@ class OpenAIClient(LLMClient):
             input=list(inputs),
         )
         return [d.embedding for d in r.data]
+
 
 # Pass either client to RAGNavRetriever(..., llm=...), PaperRAG(..., llm=...), QueryFallback(..., llm=...).
 ```
@@ -402,3 +410,17 @@ Example output:
   ]
 }
 ```
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome. See [CONTRIBUTING.md](https://github.com/irfanalidv/RAGNav/blob/main/CONTRIBUTING.md)
+for the dev setup (`pip install -e ".[dev]"`, `pytest`, `ruff check .`, `ruff format --check .`),
+and [SECURITY.md](https://github.com/irfanalidv/RAGNav/blob/main/SECURITY.md) for reporting vulnerabilities privately.
+
+If you use RAGNav in research, please cite it via [CITATION.cff](https://github.com/irfanalidv/RAGNav/blob/main/CITATION.cff).
+
+## License
+
+MIT. See [LICENSE](https://github.com/irfanalidv/RAGNav/blob/main/LICENSE).

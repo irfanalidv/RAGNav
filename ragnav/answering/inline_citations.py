@@ -8,7 +8,6 @@ from ..json_utils import extract_json
 from ..llm.base import LLMClient
 from ..models import Block
 
-
 _CITE_RE = re.compile(r"\[\[([^\]]+)\]\]")
 
 

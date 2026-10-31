@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import argparse
 import json
-from typing import Optional
 
 from .env import load_env
 
 
 def _cmd_vectorless_pdf(args: argparse.Namespace) -> int:
     load_env()
-    from .llm.mistral import MistralClient
     from .cache.sqlite_cache import RetrievalCache, SqliteCacheConfig, SqliteKV
+    from .llm.mistral import MistralClient
     from .pipelines.vectorless import VectorlessRagConfig, vectorless_answer, vectorless_rag_pdf_url
 
     llm = MistralClient()
@@ -36,8 +35,8 @@ def _cmd_vectorless_pdf(args: argparse.Namespace) -> int:
 
 def _cmd_hybrid_pdf(args: argparse.Namespace) -> int:
     load_env()
-    from .llm.mistral import MistralClient
     from .cache.sqlite_cache import EmbeddingCache, RetrievalCache, SqliteCacheConfig, SqliteKV
+    from .llm.mistral import MistralClient
     from .pipelines.hybrid import HybridRagConfig, hybrid_answer, hybrid_rag_pdf_url
 
     llm = MistralClient()
@@ -83,8 +82,8 @@ def _cmd_hybrid_pdf(args: argparse.Namespace) -> int:
 
 def _cmd_agentic_pdf(args: argparse.Namespace) -> int:
     load_env()
-    from .llm.mistral import MistralClient
     from .cache.sqlite_cache import EmbeddingCache, RetrievalCache, SqliteCacheConfig, SqliteKV
+    from .llm.mistral import MistralClient
     from .pipelines.agentic import AgenticConfig
     from .pipelines.agentic_pdf import AgenticPdfConfig, agentic_pdf_url
     from .pipelines.hybrid import HybridRagConfig
@@ -175,8 +174,11 @@ def _cmd_paper_pdf(args: argparse.Namespace) -> int:
     return 0
 
 
-def main(argv: Optional[list[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
+    from . import __version__
+
     parser = argparse.ArgumentParser(prog="ragnav", description="RAGNav CLI")
+    parser.add_argument("--version", action="version", version=f"ragnav {__version__}")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p_vec = sub.add_parser("vectorless-pdf", help="Vectorless RAG over a PDF URL (BM25-only).")

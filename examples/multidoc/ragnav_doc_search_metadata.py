@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from ragnav.ingest.markdown import ingest_markdown_string
-from ragnav.env import load_env
-from ragnav.llm.mistral import MistralClient
-from ragnav.json_utils import extract_json
-from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
 from ragnav.display import print_wrapped
-
+from ragnav.env import load_env
+from ragnav.ingest.markdown import ingest_markdown_string
+from ragnav.json_utils import extract_json
+from ragnav.llm.mistral import MistralClient
+from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
 
 DOC_1 = """
 # ACME Corp Q1 FY25 Earnings (Excerpt)

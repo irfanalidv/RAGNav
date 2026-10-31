@@ -3,8 +3,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from ragnav.llm.fake import FakeLLMClient
-from ragnav.models import Block, Document
-from ragnav.models import ConfidenceLevel
+from ragnav.models import Block, ConfidenceLevel, Document
 from ragnav.retrieval import RAGNavIndex, RAGNavRetriever
 from ragnav.retrieval._helpers import _rrf_fuse, _score_confidence
 

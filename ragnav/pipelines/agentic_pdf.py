@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
 
-from ..llm.base import LLMClient
 from ..cache.sqlite_cache import EmbeddingCache, RetrievalCache
+from ..llm.base import LLMClient
 from .agentic import AgenticConfig, agentic_retrieve_then_answer
 from .hybrid import HybridRagConfig, hybrid_rag_pdf_url
 
@@ -23,9 +22,9 @@ def agentic_pdf_url(
     query: str,
     llm: LLMClient,
     cfg: AgenticPdfConfig = AgenticPdfConfig(),
-    cache_path: Optional[Union[str, Path]] = Path("data") / "document.pdf",
-    embedding_cache: Optional[EmbeddingCache] = None,
-    retrieval_cache: Optional[RetrievalCache] = None,
+    cache_path: str | Path | None = Path("data") / "document.pdf",
+    embedding_cache: EmbeddingCache | None = None,
+    retrieval_cache: RetrievalCache | None = None,
 ) -> tuple[str, str]:
     """
     Agentic retrieval over a PDF URL (hybrid retrieval tool).

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Optional
+from typing import Any
 
 from ..json_utils import extract_json
 from ..llm.base import LLMClient
@@ -64,7 +64,7 @@ def route_pages_by_semantics(
     llm: LLMClient,
     query: str,
     *,
-    allowed_doc_ids: Optional[set[str]] = None,
+    allowed_doc_ids: set[str] | None = None,
     k_bm25: int = 60,
     k_vec: int = 60,
     w_bm25: float = 0.45,

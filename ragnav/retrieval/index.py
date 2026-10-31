@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable, Optional
 
 from ..cache.sqlite_cache import EmbeddingCache
 from ..exceptions import RAGNavEmbeddingError, RAGNavLLMError
@@ -24,7 +24,7 @@ class RAGNavIndex:
     blocks_by_id: dict[str, Block]
     blocks_by_parent: dict[str, list[Block]]
     bm25: BM25Index
-    vectors: Optional[VectorIndex]
+    vectors: VectorIndex | None
     edges: list[Edge] = field(default_factory=list)
     edges_out: dict[str, list[Edge]] = field(default_factory=dict)
     edges_in: dict[str, list[Edge]] = field(default_factory=dict)
@@ -39,15 +39,15 @@ class RAGNavIndex:
         *,
         documents: Iterable[Document],
         blocks: list[Block],
-        llm: Optional[LLMClient] = None,
+        llm: LLMClient | None = None,
         embed_batch_size: int = 64,
         build_vectors: bool = True,
-        edges: Optional[list[Edge]] = None,
-        embedding_cache: Optional[EmbeddingCache] = None,
-        trace: Optional[Trace] = None,
-        vector_model: Optional[str] = None,
+        edges: list[Edge] | None = None,
+        embedding_cache: EmbeddingCache | None = None,
+        trace: Trace | None = None,
+        vector_model: str | None = None,
         use_sentence_transformers: bool = True,
-    ) -> "RAGNavIndex":
+    ) -> RAGNavIndex:
         if llm is None:
             if use_sentence_transformers and build_vectors:
                 from ..llm.fake import FakeLLMClient
@@ -76,7 +76,7 @@ class RAGNavIndex:
 
         bm25 = BM25Index.build(blocks)
 
-        vectors: Optional[VectorIndex] = None
+        vectors: VectorIndex | None = None
         if build_vectors and blocks:
             st_model = vector_model or "all-MiniLM-L6-v2"
             if use_sentence_transformers:
@@ -102,8 +102,8 @@ class RAGNavIndex:
 
             if vectors is None:
                 texts = [b.text for b in blocks]
-                embeddings: list[Optional[list[float]]] = [None] * len(texts)
-                model_hint: Optional[str] = None
+                embeddings: list[list[float] | None] = [None] * len(texts)
+                model_hint: str | None = None
                 for i in range(0, len(texts), embed_batch_size):
                     chunk = texts[i : i + embed_batch_size]
                     cached: dict[int, list[float]] = {}

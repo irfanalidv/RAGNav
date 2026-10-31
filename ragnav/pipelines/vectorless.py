@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
 
+from ..cache.sqlite_cache import RetrievalCache
 from ..env import load_env
 from ..ingest.pdf import PdfIngestOptions, ingest_pdf_bytes
 from ..llm.base import LLMClient
-from ..retrieval import RAGNavIndex, RAGNavRetriever
-from ..cache.sqlite_cache import RetrievalCache
 from ..net import download_pdf
+from ..retrieval import RAGNavIndex, RAGNavRetriever
 
 
 @dataclass(frozen=True)
@@ -38,7 +37,7 @@ def vectorless_rag_from_pdf_bytes(
     index = RAGNavIndex.build(documents=[doc], blocks=blocks, llm=llm, build_vectors=False)
     retriever = RAGNavRetriever(index=index, llm=llm)
 
-    def retrieve(query: str, *, retrieval_cache: Optional[RetrievalCache] = None) -> list[dict]:
+    def retrieve(query: str, *, retrieval_cache: RetrievalCache | None = None) -> list[dict]:
         return retriever.retrieve_raw(
             query,
             max_blocks=cfg.max_blocks,
@@ -76,7 +75,7 @@ def vectorless_rag_pdf_url(
     pdf_url: str,
     llm: LLMClient,
     cfg: VectorlessRagConfig = VectorlessRagConfig(),
-    cache_path: Optional[Union[str, Path]] = Path("data") / "document.pdf",
+    cache_path: str | Path | None = Path("data") / "document.pdf",
 ) -> tuple[list[dict], str]:
     """
     End-to-end vectorless RAG setup for a PDF URL.
