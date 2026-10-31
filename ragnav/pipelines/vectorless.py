@@ -83,7 +83,8 @@ def vectorless_rag_pdf_url(
     """
     load_env()
     pdf_bytes = download_pdf(pdf_url, out_path=cache_path)
+    pdf_name = Path(str(cache_path)).name if cache_path is not None else "document.pdf"
     retrieve_fn, doc_id = vectorless_rag_from_pdf_bytes(
-        pdf_bytes=pdf_bytes, llm=llm, pdf_name=Path(str(cache_path)).name, cfg=cfg
+        pdf_bytes=pdf_bytes, llm=llm, pdf_name=pdf_name, cfg=cfg
     )
     return retrieve_fn, doc_id

@@ -85,5 +85,12 @@ def agentic_retrieve_then_answer(
         },
     )
     final_raw = llm.chat(messages=memory, temperature=0)
-    final = extract_json(final_raw)
-    return str(final.get("answer") if isinstance(final, dict) else final_raw).strip()
+    try:
+        final = extract_json(final_raw)
+    except ValueError:
+        # The model answered in plain text instead of JSON: return the text itself
+        # rather than crashing after all the retrieval work.
+        return final_raw.strip()
+    if isinstance(final, dict) and final.get("answer") is not None:
+        return str(final["answer"]).strip()
+    return final_raw.strip()
