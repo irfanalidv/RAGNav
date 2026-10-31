@@ -60,3 +60,38 @@ def test_ingest_html_string_graph_builds_blocks_and_links():
     assert "paris" in combined and "berlin" in combined
     link_edges = [e for e in g.edges if e.type == "link_to"]
     assert link_edges
+
+
+def test_ingest_multipart_eml_prefers_plain_text_and_threads_on_references():
+    from email.message import EmailMessage
+
+    from ragnav.ingest.email import ingest_eml_bytes_graph
+
+    msg = EmailMessage()
+    msg["From"] = "a@example.com"
+    msg["To"] = "b@example.com"
+    msg["Subject"] = "Re: launch"
+    msg["Message-Id"] = "<2@example.com>"
+    msg["References"] = "<0@example.com> <1@example.com>"
+    msg.set_content("Plain body wins.")
+    msg.add_alternative("<p>HTML body</p>", subtype="html")
+
+    g = ingest_eml_bytes_graph(msg.as_bytes(), name="t.eml", metadata={"box": "inbox"})
+    body = next(b for b in g.blocks.values() if b.block_id.endswith("#body"))
+    assert body.text == "Plain body wins."
+    reply = [e for e in g.edges if e.type == "reply_to"]
+    assert reply and reply[0].dst == "email:msgid:<1@example.com>"
+
+
+def test_ingest_html_only_eml_falls_back_to_first_text_part():
+    from email.message import EmailMessage
+
+    from ragnav.ingest.email import ingest_eml_bytes_graph
+
+    msg = EmailMessage()
+    msg["Subject"] = "html only"
+    msg.add_alternative("<p>Only HTML</p>", subtype="html")
+    msg.add_attachment(b"\x00\x01", maintype="application", subtype="octet-stream")
+    g = ingest_eml_bytes_graph(msg.as_bytes())
+    body = next(b for b in g.blocks.values() if b.block_id.endswith("#body"))
+    assert "Only HTML" in body.text

@@ -51,3 +51,23 @@ def test_agentic_falls_back_when_llm_returns_unparseable_json():
         cfg=AgenticConfig(max_steps=2),
     )
     assert "Berlin" in answer
+
+
+def test_agentic_final_answer_accepts_plain_text() -> None:
+    """If the forced final turn is not JSON, return the text instead of raising."""
+    from ragnav.pipelines.agentic import AgenticConfig, agentic_retrieve_then_answer
+
+    class PlainLLM:
+        def chat(self, *, messages, model=None, temperature=0):  # type: ignore[no-untyped-def]
+            return "The answer is 42."
+
+        def embed(self, *, inputs, model=None):  # type: ignore[no-untyped-def]
+            return [[0.0] for _ in inputs]
+
+    out = agentic_retrieve_then_answer(
+        query="q",
+        llm=PlainLLM(),
+        retrieve_raw=lambda q, n: [],
+        cfg=AgenticConfig(max_steps=1),
+    )
+    assert out == "The answer is 42."
