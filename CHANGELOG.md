@@ -4,6 +4,52 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-10-31
+
+### Fixed
+
+- `QueryFallback` could never adopt a rephrased query against a real index: it compared
+  `top_score`, which is min-max normalized per result list and is 1.0 for almost every
+  result. Results are now compared by confidence level, then `top_score`.
+- With `fusion="rrf"` and a single contributing list (BM25-only or vector-only), RRF scores
+  depend only on rank, so `ConfidenceLevel` reflected the candidate count rather than match
+  quality. A single list now keeps its own scores (same ranking; SQuAD numbers unchanged).
+- `expand_structure` re-sorted results by heading depth and block id, so `result.blocks[0]`
+  was rarely the best hit and truncating the list could drop the best evidence. Expansion
+  now keeps relevance order. `expand_graph` returned blocks in set-iteration order, which
+  varied between processes; it is now seed-first and deterministic.
+- The retrieval cache key ignored `content_policy`, so a result cached without a policy was
+  returned to a later call that passed `SimpleInjectionPolicy`, including the dropped
+  injection blocks.
+- `RAGNavIndex.build(llm=None)` silently fell back to hash-based fake embeddings when
+  sentence-transformers was missing; it now builds a BM25-only index and logs a warning.
+  `build_vectors=False` no longer tries to construct a Mistral client.
+- `agentic_retrieve_then_answer` crashed when the model's forced final answer was plain text
+  instead of JSON; the text is now returned.
+- PyMuPDF documents and `SqliteKV` connections were never closed (`SqliteKV` now has
+  `close()` and context-manager support).
+- `MistralClient.chat` crashed on chunked (list) or empty message content from mistralai 2.x.
+- `ingest_pdf_file*` derived default names with `path.split("/")` (wrong on Windows);
+  `vectorless_rag_pdf_url(cache_path=None)` named the document `"None"`.
+- Over-broad `except Exception` around JSON parsing and optional imports narrowed so real
+  errors surface.
+
+### Changed
+
+- Strict typing: mypy with `check_untyped_defs` and `disallow_untyped_defs` passes and is a
+  blocking CI step. Ruff rule set broadened (adds SIM, C4, RUF, PTH, RET, PIE) with no blanket
+  ignores. CI uses uv, cancels superseded runs, tests the `pdf` / `messy` extras, and enforces
+  85% coverage. CodeQL scanning added. `black` removed from the dev extra.
+- README rewritten: architecture diagram, feature / configuration / API tables, verified
+  snippets, references; unverifiable third-party comparisons removed.
+
+### Added
+
+- `examples/offline/`: four recipes that run with the base install and no API key, exercised by
+  the test suite.
+- Tests for PDF ingest (PDFs generated in-process), PaperRAG, PDF pipelines, every CLI
+  subcommand, email threading. Coverage (line + branch) 76% -> 88%.
+
 ## [0.5.1] - 2026-10-31
 
 ### Fixed
