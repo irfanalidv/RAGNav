@@ -176,3 +176,17 @@ def test_expand_structure_keeps_seed_relevance_order():
     by_parent = {"a#h0": [p_a], "b#h0": [p_b]}
     out = _expand_structure(by_id, by_parent, [p_b, p_a])  # p_b ranked first
     assert [b.block_id for b in out] == ["b#p1", "b#h0", "a#p9", "a#h0"]
+
+
+def test_expand_graph_is_deterministic_and_seed_first():
+    from ragnav.graph import Edge
+    from ragnav.models import Block
+    from ragnav.retrieval._helpers import _edges_in, _edges_out, _expand_graph
+
+    blocks = [Block(block_id=f"b{i}", doc_id="d", type="paragraph", text=str(i)) for i in range(4)]
+    edges = [Edge(src=f"b{i}", dst=f"b{i + 1}", type="next") for i in range(3)]
+    by_id = {b.block_id: b for b in blocks}
+    out = _expand_graph(
+        by_id, _edges_out(edges), _edges_in(edges), [by_id["b2"]], edge_types={"next"}, hops=1
+    )
+    assert [b.block_id for b in out] == ["b2", "b3", "b1"]

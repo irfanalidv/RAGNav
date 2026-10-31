@@ -157,9 +157,13 @@ def _expand_graph(
 ) -> list[Block]:
     """
     Expand from seeds along typed edges (reply/next/link/etc.).
+
+    Returns the seeds in their given (relevance) order followed by neighbours in
+    breadth-first discovery order, so the output is deterministic across runs.
     """
     frontier = [b.block_id for b in seeds]
     seen: set[str] = set(frontier)
+    ordered: list[str] = list(frontier)
 
     for _ in range(max(1, hops)):
         nxt: list[str] = []
@@ -184,11 +188,12 @@ def _expand_graph(
                     nxt.append(e.src)
                 if len(nxt) >= max_neighbors_per_node:
                     break
+        ordered.extend(nxt)
         frontier = nxt
         if not frontier:
             break
 
-    return [by_id[x] for x in seen if x in by_id]
+    return [by_id[x] for x in ordered if x in by_id]
 
 
 def _allowed_by_constraints(
