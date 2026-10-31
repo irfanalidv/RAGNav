@@ -74,13 +74,13 @@ def test_ragnav_index_ten_docs_retrieve_non_empty():
 
 def test_retrieve_bm25_only_non_empty():
     llm = FakeLLMClient()
-    docs = [Document(doc_id="d%d" % i) for i in range(5)]
+    docs = [Document(doc_id=f"d{i}") for i in range(5)]
     blocks = [
         Block(
-            block_id="b%d" % i,
-            doc_id="d%d" % i,
+            block_id=f"b{i}",
+            doc_id=f"d{i}",
             type="paragraph",
-            text="token%d alpha bravo charlie" % i,
+            text=f"token{i} alpha bravo charlie",
         )
         for i in range(5)
     ]
@@ -139,12 +139,12 @@ def test_retrieve_squad_like_passage_high_confidence():
     did = "squadtest"
     doc = Document(doc_id=did, source="s", metadata={})
     noise = Block(
-        block_id="%s:p0" % did,
+        block_id=f"{did}:p0",
         doc_id=did,
         type="paragraph",
         text="Unrelated: medieval pottery glazing techniques in southern France circa 1400.",
     )
-    gold = Block(block_id="%s:p1" % did, doc_id=did, type="paragraph", text=ctx)
+    gold = Block(block_id=f"{did}:p1", doc_id=did, type="paragraph", text=ctx)
     idx = RAGNavIndex.build(
         documents=[doc],
         blocks=[noise, gold],

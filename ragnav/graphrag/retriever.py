@@ -85,7 +85,7 @@ class EntityGraphRetriever:
         return {
             "query": query,
             "seed_entity_ids": seeds,
-            "visited_entity_ids": sorted(list(visited_entities)),
+            "visited_entity_ids": sorted(visited_entities),
             "visited_relations": visited_edges,
             "evidence_block_ids": evidence_ids,
             "blocks": blocks,

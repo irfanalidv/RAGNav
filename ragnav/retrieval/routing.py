@@ -38,8 +38,8 @@ def route_documents_by_semantics(
     bm_scores = _minmax_norm([s for _, s in bm])
     ve_scores = _minmax_norm([s for _, s in ve])
 
-    bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores)]
-    ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores)]
+    bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores, strict=True)]
+    ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores, strict=True)]
 
     merged = _dedupe_keep_best(bm_scored + ve_scored)
     merged.sort(key=lambda x: x[1], reverse=True)
@@ -87,8 +87,8 @@ def route_pages_by_semantics(
 
     bm_scores = _minmax_norm([s for _, s in bm])
     ve_scores = _minmax_norm([s for _, s in ve])
-    bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores)]
-    ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores)]
+    bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores, strict=True)]
+    ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores, strict=True)]
 
     merged = _dedupe_keep_best(bm_scored + ve_scored)
     merged.sort(key=lambda x: x[1], reverse=True)
@@ -162,7 +162,9 @@ def route_documents_by_description(
     top_docs: int = 3,
     temperature: float = 0,
 ) -> list[str]:
-    """Use the LLM to pick doc_ids from short descriptions; fall back to semantic routing if JSON fails."""
+    """Use the LLM to pick doc_ids from short descriptions; fall back to semantic routing if JSON
+    fails.
+    """
     docs_payload = []
     for doc_id, desc in descriptions.items():
         doc = index.documents.get(doc_id)

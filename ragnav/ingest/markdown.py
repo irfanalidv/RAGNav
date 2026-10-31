@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -82,7 +83,7 @@ def ingest_markdown_string(
             title = m.group(2).strip()
             while parent_stack and parent_stack[-1][0] >= level:
                 parent_stack.pop()
-            heading_path = tuple(p[1] for p in parent_stack) + (title,)
+            heading_path = (*tuple(p[1] for p in parent_stack), title)
             parent_id = parent_stack[-1][2] if parent_stack else None
             h_bid = next_id("h")
             blocks.append(
@@ -188,7 +189,7 @@ def ingest_markdown_string_graph(
             g.add_edge(Edge(src=b.parent_id, dst=b.block_id, type="parent"))
 
     ordered = sorted(blocks, key=lambda x: int(x.anchors.get("line_start", 0) or 0))
-    for prev, cur in zip(ordered, ordered[1:]):
+    for prev, cur in itertools.pairwise(ordered):
         g.add_edge(Edge(src=prev.block_id, dst=cur.block_id, type="next"))
     g.build_indexes()
     return g

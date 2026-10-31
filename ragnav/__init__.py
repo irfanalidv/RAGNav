@@ -12,8 +12,8 @@ except PackageNotFoundError:  # pragma: no cover - running from a source tree wi
 __all__ = [
     "Block",
     "Document",
-    "RetrievalResult",
     "RAGNavIndex",
     "RAGNavRetriever",
+    "RetrievalResult",
     "__version__",
 ]

@@ -9,7 +9,7 @@ class ConfidenceLevel(str, Enum):
     """
     Coarse retrieval confidence after hybrid fusion (RRF or weighted) and optional reranking.
 
-    Thresholds assume **min–max normalized** scores in ``[0, 1]`` computed from the top
+    Thresholds assume **min-max normalized** scores in ``[0, 1]`` computed from the top
     of the fused candidate list (or from the reranker pool when a reranker is used), not
     raw BM25 or raw RRF sums.
     """

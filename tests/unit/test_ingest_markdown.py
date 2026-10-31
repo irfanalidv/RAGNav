@@ -12,7 +12,7 @@ Intro paragraph.
 
 Body under A.
 """
-    doc, blocks = ingest_markdown_string(md, name="t.md")
+    _doc, blocks = ingest_markdown_string(md, name="t.md")
     types = [b.type for b in blocks]
     assert "heading" in types
     assert "paragraph" in types

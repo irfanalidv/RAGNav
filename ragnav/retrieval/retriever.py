@@ -54,9 +54,12 @@ class RAGNavRetriever:
                         "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient for offline), "
                         "or install Mistral support with: pip install ragnav[mistral]"
                     ) from e
-        if self.cost_tracker is not None and self.llm is not None:
-            if getattr(self.llm, "cost_tracker", None) is None:
-                self.llm.cost_tracker = self.cost_tracker
+        if (
+            self.cost_tracker is not None
+            and self.llm is not None
+            and getattr(self.llm, "cost_tracker", None) is None
+        ):
+            self.llm.cost_tracker = self.cost_tracker
 
     def retrieve(
         self,
@@ -101,11 +104,9 @@ class RAGNavRetriever:
 
         cache_payload = {
             "query": query,
-            "allowed_doc_ids": sorted(list(allowed_doc_ids)) if allowed_doc_ids else None,
+            "allowed_doc_ids": sorted(allowed_doc_ids) if allowed_doc_ids else None,
             "allowed_doc_pages": (
-                {k: sorted(list(v)) for k, v in allowed_doc_pages.items()}
-                if allowed_doc_pages
-                else None
+                {k: sorted(v) for k, v in allowed_doc_pages.items()} if allowed_doc_pages else None
             ),
             "required_doc_metadata": required_doc_metadata,
             "principal": principal,
@@ -117,7 +118,7 @@ class RAGNavRetriever:
             "use_vectors": use_vectors,
             "expand_structure": expand_structure,
             "expand_graph": expand_graph,
-            "graph_edge_types": sorted(list(graph_edge_types)) if graph_edge_types else None,
+            "graph_edge_types": sorted(graph_edge_types) if graph_edge_types else None,
             "graph_hops": graph_hops,
             "fusion": fusion,
             "reranker_model": self.reranker.model_name if self.reranker is not None else None,
@@ -239,11 +240,9 @@ class RAGNavRetriever:
 
         trace_payload: dict[str, Any] = {
             "query": query,
-            "allowed_doc_ids": sorted(list(allowed_doc_ids)) if allowed_doc_ids else None,
+            "allowed_doc_ids": sorted(allowed_doc_ids) if allowed_doc_ids else None,
             "allowed_doc_pages": (
-                {k: sorted(list(v)) for k, v in allowed_doc_pages.items()}
-                if allowed_doc_pages
-                else None
+                {k: sorted(v) for k, v in allowed_doc_pages.items()} if allowed_doc_pages else None
             ),
             "required_doc_metadata": required_doc_metadata,
             "principal": principal,

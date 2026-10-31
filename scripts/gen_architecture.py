@@ -10,7 +10,6 @@ Writes: assets/ragnav-architecture.png
 
 from __future__ import annotations
 
-import os
 import platform
 from pathlib import Path
 
@@ -64,7 +63,7 @@ def _font_candidates(bold: bool) -> list[str]:
 def font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     paths = _font_candidates(bold)
     for p in paths:
-        if os.path.exists(p):
+        if Path(p).exists():
             try:
                 return ImageFont.truetype(p, size)
             except OSError:
@@ -157,7 +156,7 @@ def main() -> None:
         x1, w = cols[i]
         return x1 + w // 2
 
-    # 1–7 with "R" for optional rerank (all same font — no Unicode circled digits)
+    # 1-7 with "R" for optional rerank (all same font — no Unicode circled digits)
     step_labels = ["1", "2", "3", "4", "5", "R", "6", "7"]
     step_shown = [True, True, True, True, True, True, True, True]
 
@@ -167,7 +166,7 @@ def main() -> None:
         5: TOP - 26,
         6: TOP - 50,
     }
-    for i, (label, show) in enumerate(zip(step_labels, step_shown)):
+    for i, (label, show) in enumerate(zip(step_labels, step_shown, strict=True)):
         if not show:
             continue
         cx = col_cx(i)
@@ -434,7 +433,8 @@ def main() -> None:
 
     text_center(
         d,
-        "Offline benchmarks: squad_benchmark  ·  cuad_benchmark  ·  scorecard  ·  paper_eval  ·  security_eval",
+        "Offline benchmarks: squad_benchmark  ·  cuad_benchmark  ·  scorecard  ·  paper_eval  ·  "
+        "security_eval",
         W // 2,
         foot_y,
         F_SMALL,
@@ -443,7 +443,7 @@ def main() -> None:
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     img.save(OUT_PATH, "PNG", dpi=(144, 144))
-    print(f"saved → {OUT_PATH}  ({W}×{H})")
+    print(f"saved → {OUT_PATH}  ({W}x{H})")
 
 
 if __name__ == "__main__":

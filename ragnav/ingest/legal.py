@@ -10,6 +10,7 @@ edges so structure-aware retrieval and expansion behave like they do on markdown
 
 from __future__ import annotations
 
+import itertools
 import re
 from typing import Any, Literal
 
@@ -73,7 +74,7 @@ def ingest_legal(
 
     def next_id() -> str:
         nonlocal bid
-        out = "%s#l%d" % (doc_id, bid)
+        out = f"{doc_id}#l{bid}"
         bid += 1
         return out
 
@@ -147,7 +148,7 @@ def ingest_legal(
             while stack and stack[-1][0] >= 2:
                 stack.pop()
             parent_id = stack[-1][2] if stack else None
-            path = heading_path_tuple() + (title,) if stack else (title,)
+            path = (*heading_path_tuple(), title) if stack else (title,)
             hb = next_id()
             blocks.append(
                 Block(
@@ -205,7 +206,7 @@ def ingest_legal(
         g.add_edge(Edge(src=doc.doc_id, dst=b.block_id, type="contains"))
         if b.parent_id:
             g.add_edge(Edge(src=b.parent_id, dst=b.block_id, type="parent"))
-    for prev, cur in zip(blocks, blocks[1:]):
+    for prev, cur in itertools.pairwise(blocks):
         g.add_edge(Edge(src=prev.block_id, dst=cur.block_id, type="next"))
     g.build_indexes()
     return doc, blocks, g

@@ -31,7 +31,7 @@ def test_legal_ingest_all_caps_definitions_heading():
     text = """DEFINITIONS
 Capitalized terms used in this agreement are defined below.
 """
-    doc, blocks, g = ingest_legal(text, doc_id="legal:defs.md")
+    _doc, blocks, _g = ingest_legal(text, doc_id="legal:defs.md")
     paras = [b for b in blocks if b.type == "paragraph"]
     assert len(paras) == 1
     assert "DEFINITIONS" in paras[0].text

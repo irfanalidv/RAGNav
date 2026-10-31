@@ -80,7 +80,7 @@ def validate_inline_citations(answer: str, *, allowed_block_ids: set[str]) -> di
         "ok": ok,
         "n_sentences": len(sents),
         "n_citations": len(cited_clean),
-        "unique_cited_block_ids": sorted(list(cited_set)),
+        "unique_cited_block_ids": sorted(cited_set),
         "unknown_block_ids": unknown,
         "sentences_missing_citations": sentences_missing,
     }

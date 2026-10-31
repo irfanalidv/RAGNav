@@ -30,7 +30,8 @@ _REPORT_METRIC_RE = re.compile(
     r"\b(?:report|reports|reported)\s+([A-Za-z][A-Za-z0-9 \-/]{1,30})\b", re.IGNORECASE
 )
 _FOR_TASK_RE = re.compile(
-    r"\bfor\s+(question answering|reading comprehension|classification|retrieval|summarization|natural language inference)\b",
+    r"\bfor\s+(question answering|reading comprehension|classification|retrieval|"
+    r"summarization|natural language inference)\b",
     re.IGNORECASE,
 )
 
@@ -174,13 +175,13 @@ def build_entity_graph(
         task_ids: list[str] = []
 
         # Lexicon-driven entities (more reliable)
-        for d in sorted(list(lex["dataset"]))[:6]:
+        for d in sorted(lex["dataset"])[:6]:
             dataset_ids.append(get_or_add("dataset", d.upper() if d.isupper() else d))
-        for m in sorted(list(lex["model"]))[:6]:
+        for m in sorted(lex["model"])[:6]:
             model_ids.append(get_or_add("model", m.upper() if m.isupper() else m))
-        for met in sorted(list(lex["metric"]))[:6]:
+        for met in sorted(lex["metric"])[:6]:
             metric_ids.append(get_or_add("metric", met))
-        for t in sorted(list(lex["task"]))[:6]:
+        for t in sorted(lex["task"])[:6]:
             task_ids.append(get_or_add("task", t))
 
         for name in cands:

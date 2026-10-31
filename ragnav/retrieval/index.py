@@ -61,7 +61,8 @@ class RAGNavIndex:
                 except Exception as e:
                     raise RAGNavLLMError(
                         "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient), "
-                        "or use use_sentence_transformers=True with build_vectors=True for local embeddings, "
+                        "or use use_sentence_transformers=True with build_vectors=True for local "
+                        "embeddings, "
                         "or install Mistral support with: pip install ragnav[mistral]"
                     ) from e
 
@@ -94,7 +95,8 @@ class RAGNavIndex:
                 except RAGNavEmbeddingError as e:
                     if isinstance(e.__cause__, ImportError):
                         _LOG.warning(
-                            "sentence-transformers not available; falling back to LLM embeddings for vectors. "
+                            "sentence-transformers not available; falling back to LLM embeddings "
+                            "for vectors. "
                             "For local embeddings install: pip install ragnav[embeddings]"
                         )
                     else:
@@ -127,7 +129,7 @@ class RAGNavIndex:
                                 new_embeds = llm.embed(inputs=missing_texts)
                         else:
                             new_embeds = llm.embed(inputs=missing_texts)
-                        for pos, emb in zip(missing_pos, new_embeds):
+                        for pos, emb in zip(missing_pos, new_embeds, strict=False):
                             embeddings[pos] = emb
                         if embedding_cache is not None:
                             embedding_cache.set_many(
@@ -138,8 +140,10 @@ class RAGNavIndex:
 
                 if any(e is None for e in embeddings):
                     raise RAGNavEmbeddingError(
-                        "Embedding generation failed: some blocks have no embedding after calling the LLM. "
-                        "Retry with a smaller batch, check your embedding API quota, or pass build_vectors=False."
+                        "Embedding generation failed: some blocks have no embedding after calling "
+                        "the LLM. "
+                        "Retry with a smaller batch, check your embedding API quota, or pass "
+                        "build_vectors=False."
                     )
                 vectors = VectorIndex.from_embeddings(blocks, embeddings)  # type: ignore[arg-type]
 

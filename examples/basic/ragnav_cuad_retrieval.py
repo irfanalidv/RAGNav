@@ -30,7 +30,7 @@ _CUAD_DATA_ZIP = "https://github.com/TheAtticusProject/cuad/raw/main/data.zip"
 
 def _contract_doc_id(context: str) -> str:
     h = hashlib.sha256(context.encode("utf-8")).hexdigest()[:12]
-    return "cuad:%s.md" % h
+    return f"cuad:{h}.md"
 
 
 def _load_cuad_test_rows() -> list[dict[str, Any]]:
@@ -70,7 +70,7 @@ def _merge_corpus(sample_rows: list[dict[str, Any]]) -> tuple[list[Any], list[An
             continue
         seen_ctx.add(ctx)
         h = hashlib.sha256(ctx.encode("utf-8")).hexdigest()[:12]
-        name = "%s.md" % h
+        name = f"{h}.md"
         g = ingest_markdown_string_graph(
             ctx, name=name, metadata={"title": row.get("title", "")}, opts=opts
         )
@@ -119,7 +119,7 @@ def main() -> None:
     )
     t_build = time.perf_counter() - t0
     print(
-        "Index build done in %.2fs (%d blocks, %d edges)\n" % (t_build, len(blocks), len(edges)),
+        f"Index build done in {t_build:.2f}s ({len(blocks)} blocks, {len(edges)} edges)\n",
         flush=True,
     )
     retriever = RAGNavRetriever(index=index, llm=llm)
@@ -157,10 +157,10 @@ def main() -> None:
         hit = top is not None and any(a.lower() in top.text.lower() for a in texts if a)
         mark = "✓" if hit else "✗"
         in_top5 = bool(gold_ids & {b.block_id for b in res.blocks[:5]})
-        print("%s Q: %s" % (mark, q))
-        print("    Gold: %s" % gold[:120])
-        print("    Top:  %s" % snippet.replace("\n", " "))
-        print("    Query time: %.0f ms | gold in top-5: %s\n" % (tq_ms, in_top5))
+        print(f"{mark} Q: {q}")
+        print(f"    Gold: {gold[:120]}")
+        print("    Top:  {}".format(snippet.replace("\n", " ")))
+        print(f"    Query time: {tq_ms:.0f} ms | gold in top-5: {in_top5}\n")
 
 
 if __name__ == "__main__":
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 #     Top:  Exhibit 10.16  EL POLLO LOCO® FRANCHISE DEVELOPMENT AGREEMENT  Dated: ____________________  Territory: Developer:  (Disclosure Document Control No. 032619)  TAB…
 #     Query time: 41 ms | gold in top-5: False
 #
-# ✗ Q: Highlight the parts (if any) of this contract related to "Volume Restriction" that should be reviewed by a lawyer. Details: Is there a fee increase or consent requirement, etc. if one party’s use of the product/services exceeds certain threshold?
+# ✗ Q: Highlight the parts (if any) of this contract related to "Volume Restriction" that should be reviewed by a lawyer. Details: Is there a fee increase or consent requirement, etc. if one party's use of the product/services exceeds certain threshold?
 #     Gold: During the Term (including any renewal Term, if any), in the event that MusclePharm shall determine to develop and intro
 #     Top:  Exhibit 10.16  EL POLLO LOCO® FRANCHISE DEVELOPMENT AGREEMENT  Dated: ____________________  Territory: Developer:  (Disclosure Document Control No. 032619)  TAB…
 #     Query time: 46 ms | gold in top-5: False

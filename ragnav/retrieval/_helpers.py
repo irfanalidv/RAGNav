@@ -50,7 +50,7 @@ def _fuse_retrieval_rankings(
     Combine BM25 and dense hit lists for hybrid retrieval.
 
     ``fusion="rrf"`` uses reciprocal rank fusion when at least one non-empty
-    ranked list is present. ``fusion="weighted"`` uses min–max normalized scores
+    ranked list is present. ``fusion="weighted"`` uses min-max normalized scores
     and the caller's BM25 / vector weights (legacy path).
     """
     by_id: dict[str, Block] = {}
@@ -62,8 +62,8 @@ def _fuse_retrieval_rankings(
     if fusion == "weighted":
         bm_scores = _minmax_norm([s for _, s in bm])
         ve_scores = _minmax_norm([s for _, s in ve])
-        bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores)]
-        ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores)]
+        bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores, strict=True)]
+        ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores, strict=True)]
         merged = _dedupe_keep_best(bm_scored + ve_scored)
         merged.sort(key=lambda x: x[1], reverse=True)
         return merged
@@ -234,7 +234,7 @@ def _confidence_normalize_top_two(
     window: int = 50,
 ) -> tuple[float, float]:
     """
-    Map the top two raw fusion or reranker scores into [0, 1] via min–max over the
+    Map the top two raw fusion or reranker scores into [0, 1] via min-max over the
     first ``window`` candidates so fixed thresholds in ``_score_confidence`` apply.
     """
     if not scored:

@@ -90,14 +90,14 @@ def citation_eval_main() -> None:
 
 
 __all__ = [
-    "offline_smoke_main",
-    "regression_main",
-    "smoke_markdown_main",
-    "paper_eval_main",
-    "entity_eval_main",
-    "entity_eval_excerpt_main",
-    "security_eval_main",
-    "scorecard_main",
-    "paper_pdf_suite_main",
     "citation_eval_main",
+    "entity_eval_excerpt_main",
+    "entity_eval_main",
+    "offline_smoke_main",
+    "paper_eval_main",
+    "paper_pdf_suite_main",
+    "regression_main",
+    "scorecard_main",
+    "security_eval_main",
+    "smoke_markdown_main",
 ]

@@ -61,15 +61,17 @@ def test_index_build_records_trace_for_embedding_cache(tmp_path):
 
 
 def test_index_build_raises_without_llm_when_vectors_required():
-    with patch("ragnav.llm.mistral.MistralClient", side_effect=ImportError("mistral unavailable")):
-        with pytest.raises(RAGNavLLMError):
-            RAGNavIndex.build(
-                documents=[Document(doc_id="d")],
-                blocks=[Block(block_id="b", doc_id="d", type="paragraph", text="x")],
-                llm=None,
-                build_vectors=True,
-                use_sentence_transformers=False,
-            )
+    with (
+        patch("ragnav.llm.mistral.MistralClient", side_effect=ImportError("mistral unavailable")),
+        pytest.raises(RAGNavLLMError),
+    ):
+        RAGNavIndex.build(
+            documents=[Document(doc_id="d")],
+            blocks=[Block(block_id="b", doc_id="d", type="paragraph", text="x")],
+            llm=None,
+            build_vectors=True,
+            use_sentence_transformers=False,
+        )
 
 
 def test_index_build_raises_when_llm_returns_incomplete_embeddings():

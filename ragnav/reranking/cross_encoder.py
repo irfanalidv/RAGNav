@@ -46,12 +46,11 @@ class CrossEncoderReranker:
         assert self._model is not None
         pairs = [(query, (b.text or "")[: self.max_length]) for b in blocks]
         raw = self._model.predict(pairs)
-        ranked = sorted(
-            [(b, float(s)) for b, s in zip(blocks, raw)],
+        return sorted(
+            [(b, float(s)) for b, s in zip(blocks, raw, strict=True)],
             key=lambda x: x[1],
             reverse=True,
         )
-        return ranked
 
     def rerank(self, query: str, blocks: list[Block], *, top_k: int) -> list[Block]:
         """

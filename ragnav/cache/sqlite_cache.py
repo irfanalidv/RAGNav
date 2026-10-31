@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import sqlite3
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -25,14 +25,15 @@ class SqliteKV:
 
     def __init__(self, config: SqliteCacheConfig) -> None:
         self._config = config
-        parent = os.path.dirname(os.path.abspath(config.db_path))
-        if parent and not os.path.isdir(parent):
+        parent = Path(config.db_path).resolve().parent
+        if not parent.is_dir():
             try:
-                os.makedirs(parent, exist_ok=True)
+                parent.mkdir(parents=True, exist_ok=True)
             except OSError as e:
                 raise RAGNavCacheError(
                     f"Failed to create cache directory for {config.db_path!r}.\n"
-                    f"Create the parent directory manually or choose a path under an existing folder."
+                    "Create the parent directory manually or choose a path under an existing "
+                    "folder."
                 ) from e
         try:
             self._conn = sqlite3.connect(config.db_path)
@@ -42,7 +43,8 @@ class SqliteKV:
                 f"Check that the directory exists and you have write permission."
             ) from e
         self._conn.execute(
-            "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, stored_at REAL NOT NULL, value BLOB NOT NULL)"
+            "CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, stored_at REAL NOT NULL, value "
+            "BLOB NOT NULL)"
         )
         self._conn.commit()
 
@@ -123,7 +125,8 @@ class EmbeddingCache:
                 out[i] = arr.astype(np.float64).tolist()
             except (json.JSONDecodeError, KeyError, ValueError, OSError) as e:
                 raise RAGNavCacheError(
-                    "Cached embedding payload is unreadable; delete the cache entry or remove the cache DB.\n"
+                    "Cached embedding payload is unreadable; delete the cache entry or remove the "
+                    "cache DB.\n"
                     f"Problematic key pattern: emb:{model or 'default'}:<hash>."
                 ) from e
         return out
@@ -137,10 +140,11 @@ class EmbeddingCache:
     ) -> None:
         if len(texts) != len(embeddings):
             raise RAGNavCacheError(
-                f"Embedding cache set_many: got {len(texts)} texts and {len(embeddings)} embeddings; "
+                f"Embedding cache set_many: got {len(texts)} texts and {len(embeddings)} "
+                "embeddings; "
                 f"counts must match."
             )
-        for t, emb in zip(texts, embeddings):
+        for t, emb in zip(texts, embeddings, strict=True):
             arr = np.asarray(emb, dtype=np.float32)
             meta = json.dumps({"shape": list(arr.shape), "dtype": str(arr.dtype)}).encode("utf-8")
             payload = len(meta).to_bytes(4, "big") + meta + arr.tobytes()
@@ -168,7 +172,8 @@ class RetrievalCache:
             return [str(x) for x in data]
         except (json.JSONDecodeError, UnicodeDecodeError) as e:
             raise RAGNavCacheError(
-                "Cached retrieval payload is not valid JSON; delete the cache file or turn off retrieval caching."
+                "Cached retrieval payload is not valid JSON; delete the cache file or turn off "
+                "retrieval caching."
             ) from e
 
     def set(self, payload: dict[str, Any], block_ids: Iterable[str]) -> None:

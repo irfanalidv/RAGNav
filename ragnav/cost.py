@@ -42,13 +42,10 @@ class CostReport:
     calls: int
 
     def summary(self) -> str:
-        budget_str = "/%.4f" % self.budget_usd if self.budget_usd is not None else ""
-        return "calls=%d  tokens=%din+%dout  cost=$%.5f%s" % (
-            self.calls,
-            self.total_input_tokens,
-            self.total_output_tokens,
-            self.total_cost_usd,
-            budget_str,
+        budget_str = f"/{self.budget_usd:.4f}" if self.budget_usd is not None else ""
+        return (
+            f"calls={self.calls}  tokens={self.total_input_tokens}in+"
+            f"{self.total_output_tokens}out  cost=${self.total_cost_usd:.5f}{budget_str}"
         )
 
 
@@ -93,9 +90,8 @@ class CostTracker:
         """
         if self.budget_usd is not None and self._cost_usd >= self.budget_usd:
             raise BudgetExceededError(
-                "Cost budget $%.4f exceeded (current: $%.5f).\n"
+                f"Cost budget ${self.budget_usd:.4f} exceeded (current: ${self._cost_usd:.5f}).\n"
                 "Raise ``budget_usd`` on ``CostTracker`` or stop passing a tracker."
-                % (self.budget_usd, self._cost_usd)
             )
 
     def report(self) -> CostReport:

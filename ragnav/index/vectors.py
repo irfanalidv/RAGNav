@@ -30,7 +30,8 @@ def _get_sentence_transformer(model_name: str) -> Any:
             from sentence_transformers import SentenceTransformer
         except ImportError as e:
             raise RAGNavEmbeddingError(
-                "sentence-transformers is required for embedding-based retrieval with the default local model.\n"
+                "sentence-transformers is required for embedding-based retrieval with the default "
+                "local model.\n"
                 "Install with: pip install ragnav[embeddings]"
             ) from e
         _ST_MODELS[model_name] = SentenceTransformer(model_name)
@@ -51,7 +52,8 @@ def _encode_texts_sentence_transformer(texts: list[str], model_name: str) -> np.
 @dataclass
 class VectorIndex:
     """
-    Dense retrieval over block texts: either sentence-transformers (default) or caller-supplied embeddings (e.g. LLM).
+    Dense retrieval over block texts: either sentence-transformers (default) or
+    caller-supplied embeddings (e.g. LLM).
     """
 
     blocks: list[Block] = field(default_factory=list)
@@ -78,7 +80,9 @@ class VectorIndex:
         embed_batch_size: int = 64,
         trace: Trace | None = None,
     ) -> None:
-        """Embed ``texts`` with sentence-transformers and store rows aligned with ``ids`` / ``blocks``."""
+        """Embed ``texts`` with sentence-transformers and store rows aligned with ``ids`` /
+        ``blocks``.
+        """
         if len(texts) != len(ids):
             raise RAGNavEmbeddingError(
                 "VectorIndex.build: texts and ids must have the same length. "
@@ -122,7 +126,7 @@ class VectorIndex:
                         mat = _encode_texts_sentence_transformer(missing_texts, mname)
                 else:
                     mat = _encode_texts_sentence_transformer(missing_texts, mname)
-                for row, pos in zip(mat, missing_pos):
+                for row, pos in zip(mat, missing_pos, strict=True):
                     embeddings[pos] = row.tolist()
                 if embedding_cache is not None:
                     embedding_cache.set_many(
@@ -141,7 +145,8 @@ class VectorIndex:
         mat = np.asarray(embeddings, dtype=np.float32)
         if mat.ndim != 2:
             raise RAGNavEmbeddingError(
-                "Embeddings must form a 2D matrix (one row per text). Check sentence-transformers output."
+                "Embeddings must form a 2D matrix (one row per text). Check sentence-transformers "
+                "output."
             )
         self.vectors = _l2_normalize(mat)
         self.blocks = blocks if blocks is not None else []
@@ -149,17 +154,21 @@ class VectorIndex:
         self._backend = "sentence_transformers"
 
     def query(self, query_text: str, *, top_k: int = 20) -> list[tuple[str, float]]:
-        """Return ``(block_id, cosine similarity)`` for the top ``top_k`` ids (sentence-transformers backend only)."""
+        """Return ``(block_id, cosine similarity)`` for the top ``top_k`` ids
+        (sentence-transformers backend only).
+        """
         if not self.has_fitted:
             return []
         if not self.uses_sentence_transformers or not self.model_name:
             raise RAGNavEmbeddingError(
-                "VectorIndex.query(text) only applies when the index was built with sentence-transformers. "
+                "VectorIndex.query(text) only applies when the index was built with "
+                "sentence-transformers. "
                 "Use search() with a query embedding from your LLM instead."
             )
         if not self.blocks or len(self.blocks) != self.vectors.shape[0]:
             raise RAGNavEmbeddingError(
-                "VectorIndex.query requires blocks aligned with each row; rebuild the index with blocks=..."
+                "VectorIndex.query requires blocks aligned with each row; rebuild the index with "
+                "blocks=..."
             )
         q = _encode_texts_sentence_transformer([query_text], self.model_name)
         q = _l2_normalize(q)
@@ -172,12 +181,14 @@ class VectorIndex:
         """Build from precomputed vectors (e.g. Mistral / FakeLLM ``embed`` output)."""
         if len(blocks) != len(embeddings):
             raise RAGNavEmbeddingError(
-                "blocks and embeddings length mismatch. Pass one embedding list per block when building the index."
+                "blocks and embeddings length mismatch. Pass one embedding list per block when "
+                "building the index."
             )
         mat = np.asarray(embeddings, dtype=np.float32)
         if mat.ndim != 2:
             raise RAGNavEmbeddingError(
-                "embeddings must be a 2D array (one row per block). Check your embedding provider output shape."
+                "embeddings must be a 2D array (one row per block). Check your embedding provider "
+                "output shape."
             )
         doc_ids = [b.doc_id for b in blocks]
         return cls(
@@ -217,7 +228,9 @@ class VectorIndex:
         k: int = 20,
         allowed_doc_ids: set[str] | None = None,
     ) -> list[tuple[Block, float]]:
-        """Search using the same sentence-transformers model as index build (cosine on L2-normalized rows)."""
+        """Search using the same sentence-transformers model as index build (cosine on
+        L2-normalized rows).
+        """
         if not self.has_fitted:
             return []
         if not self.uses_sentence_transformers or not self.model_name:
@@ -250,6 +263,7 @@ class VectorIndex:
             return self.search_by_text(query, k=k, allowed_doc_ids=allowed_doc_ids)
         if query_embedding is None:
             raise RAGNavEmbeddingError(
-                "This index uses external embeddings; pass query_embedding from your LLM's embed() call."
+                "This index uses external embeddings; pass query_embedding from your LLM's "
+                "embed() call."
             )
         return self.search(query_embedding, k=k, allowed_doc_ids=allowed_doc_ids)

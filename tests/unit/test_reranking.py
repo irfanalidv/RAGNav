@@ -32,9 +32,11 @@ def test_cross_encoder_rerank_raises_without_sentence_transformers():
         type="paragraph",
         text="Paris is the capital of France.",
     )
-    with patch.object(builtins, "__import__", fake_import):
-        with pytest.raises(RAGNavEmbeddingError) as excinfo:
-            CrossEncoderReranker().rerank("capital of France", [blk], top_k=1)
+    with (
+        patch.object(builtins, "__import__", fake_import),
+        pytest.raises(RAGNavEmbeddingError) as excinfo,
+    ):
+        CrossEncoderReranker().rerank("capital of France", [blk], top_k=1)
     msg = str(excinfo.value).lower()
     assert "ragnav[embeddings]" in msg or "pip install" in msg
 

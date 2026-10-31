@@ -59,7 +59,7 @@ def score_retrieval(cases: list[EvalCase], retrieved: list[list[Block]]) -> Retr
     substring_hits = 0
     total_blocks = 0
 
-    for c, blocks in zip(cases, retrieved):
+    for c, blocks in zip(cases, retrieved, strict=True):
         total_blocks += len(blocks)
         if _hit_block_ids(c, blocks):
             block_hits += 1

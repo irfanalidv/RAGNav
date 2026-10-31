@@ -45,7 +45,7 @@ class QueryFallback:
     """
     Wraps ``RAGNavRetriever`` so a weak first-pass score triggers LLM-written query variants.
 
-    Production retrieval often fails quietly when the user’s wording does not match the corpus;
+    Production retrieval often fails quietly when the user's wording does not match the corpus;
     this layer retries with rephrased queries instead of returning low-confidence hits once.
     """
 

@@ -49,7 +49,8 @@ class MistralClient(LLMClient):
         api_key = os.getenv(self.cfg.api_key_env)
         if not api_key:
             raise RAGNavLLMError(
-                f"Missing {self.cfg.api_key_env}. Set it in your environment or a `.env` file; do not hardcode keys."
+                f"Missing {self.cfg.api_key_env}. Set it in your environment or a `.env` file; do "
+                "not hardcode keys."
             )
         self._client = Mistral(api_key=api_key)
         self.cost_tracker = cost_tracker

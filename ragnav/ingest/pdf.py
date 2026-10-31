@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from ..exceptions import RAGNavIngestError
@@ -196,13 +198,12 @@ def ingest_pdf_bytes_paper(
                 m = mfig or mtab
                 assert m is not None
                 num = m.group(1)
-                rest = (m.group(2) or "").strip()
                 cap_lines = [line]
                 j = i + 1
                 while j < len(lines) and lines[j].strip():
                     cap_lines.append(lines[j].strip())
                     j += 1
-                cap_text = "\n".join(cap_lines) if rest else "\n".join(cap_lines)
+                cap_text = "\n".join(cap_lines)
                 b = add_block(
                     typ="table" if kind == "table" else "paragraph",
                     text=cap_text,
@@ -368,9 +369,8 @@ def ingest_pdf_file(
     metadata: dict[str, Any] | None = None,
     opts: PdfIngestOptions | None = None,
 ) -> tuple[Document, list[Block]]:
-    with open(path, "rb") as f:
-        data = f.read()
-    return ingest_pdf_bytes(data, name=name or path.split("/")[-1], metadata=metadata, opts=opts)
+    data = Path(path).read_bytes()
+    return ingest_pdf_bytes(data, name=name or Path(path).name, metadata=metadata, opts=opts)
 
 
 def ingest_pdf_file_paper(
@@ -380,11 +380,8 @@ def ingest_pdf_file_paper(
     metadata: dict[str, Any] | None = None,
     opts: PdfIngestOptions | None = None,
 ) -> tuple[Document, list[Block], list[Edge]]:
-    with open(path, "rb") as f:
-        data = f.read()
-    return ingest_pdf_bytes_paper(
-        data, name=name or path.split("/")[-1], metadata=metadata, opts=opts
-    )
+    data = Path(path).read_bytes()
+    return ingest_pdf_bytes_paper(data, name=name or Path(path).name, metadata=metadata, opts=opts)
 
 
 def ingest_pdf_bytes_graph(
@@ -397,7 +394,8 @@ def ingest_pdf_bytes_graph(
     """
     Graph-native PDF ingestion (preferred for new pipelines).
 
-    - If opts.paper_mode=True, uses `ingest_pdf_bytes_paper()` and includes cross-ref `link_to` edges.
+    - If opts.paper_mode=True, uses `ingest_pdf_bytes_paper()` and includes cross-ref
+      `link_to` edges.
     - Otherwise, falls back to 1-block-per-page but still emits `contains` and `next`.
     - Always emits `parent` edges when `parent_id` is present.
     """
@@ -408,7 +406,7 @@ def ingest_pdf_bytes_graph(
         doc, blocks = ingest_pdf_bytes(data, name=name, metadata=metadata, opts=opts)
         edges = []
         ordered = sorted(blocks, key=lambda x: int(x.anchors.get("page", 0) or 0))
-        for prev, cur in zip(ordered, ordered[1:]):
+        for prev, cur in itertools.pairwise(ordered):
             edges.append(Edge(src=prev.block_id, dst=cur.block_id, type="next"))
 
     g = BlockGraph()
@@ -431,8 +429,5 @@ def ingest_pdf_file_graph(
     metadata: dict[str, Any] | None = None,
     opts: PdfIngestOptions | None = None,
 ) -> BlockGraph:
-    with open(path, "rb") as f:
-        data = f.read()
-    return ingest_pdf_bytes_graph(
-        data, name=name or path.split("/")[-1], metadata=metadata, opts=opts
-    )
+    data = Path(path).read_bytes()
+    return ingest_pdf_bytes_graph(data, name=name or Path(path).name, metadata=metadata, opts=opts)

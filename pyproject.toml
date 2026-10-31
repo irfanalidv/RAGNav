@@ -88,7 +88,6 @@ all = [
 ]
 dev = [
   "pillow>=10.0.0",
-  "black>=24.0.0",
   "ruff>=0.6.0",
   "mypy>=1.10.0",
   "build>=1.2.0",
@@ -110,17 +109,27 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B"]
-ignore = ["E501", "B008", "B904", "B905", "UP031"]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "RUF", "PTH", "RET", "PIE"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Frozen config dataclasses: a shared default instance cannot be mutated, so using one
+# as an argument / field default is safe.
+extend-immutable-calls = [
+  "ragnav.graphrag.extract.EntityExtractConfig",
+  "ragnav.graphrag.retriever.EntityGraphRetrieverConfig",
+  "ragnav.papers.rag.PaperRAGConfig",
+  "ragnav.pipelines.agentic.AgenticConfig",
+  "ragnav.pipelines.agentic_pdf.AgenticPdfConfig",
+  "ragnav.pipelines.hybrid.HybridRagConfig",
+  "ragnav.pipelines.vectorless.VectorlessRagConfig",
+]
 
 [tool.ruff.lint.per-file-ignores]
-"benchmarks/*.py" = ["E402"]
-"examples/**/*.py" = ["E402"]
-"cookbook/*.ipynb" = ["E402"]
-
-[tool.black]
-line-length = 100
-target-version = ["py310"]
+# Benchmarks, examples and notebooks put the repo root on sys.path before importing
+# ragnav, and print long human-readable result lines.
+"benchmarks/*.py" = ["E402", "E501"]
+"examples/**/*.py" = ["E402", "E501"]
+"cookbook/*.ipynb" = ["E402", "E501", "SIM905"]  # str.split() word lists read better in demos
 
 [tool.setuptools]
 include-package-data = true

@@ -34,7 +34,7 @@ _BENCH_DIR = Path(__file__).resolve().parent
 if str(_BENCH_DIR) not in sys.path:
     sys.path.insert(0, str(_BENCH_DIR))
 
-from _runner import (  # noqa: E402
+from _runner import (
     RetrievalScore,
     print_table,
     score_any_gold,
@@ -46,7 +46,7 @@ _CUAD_DATA_ZIP = "https://github.com/TheAtticusProject/cuad/raw/main/data.zip"
 
 def _contract_doc_id(context: str) -> str:
     h = hashlib.sha256(context.encode("utf-8")).hexdigest()[:12]
-    return "cuad:%s.md" % h
+    return f"cuad:{h}.md"
 
 
 def _load_cuad_test_rows() -> list[dict[str, Any]]:
@@ -55,8 +55,7 @@ def _load_cuad_test_rows() -> list[dict[str, Any]]:
             zf = zipfile.ZipFile(io.BytesIO(resp.read()))
     except URLError as e:
         raise SystemExit(
-            "Failed to download CUAD data.zip. Check network access.\n"
-            "URL: %s\nError: %s" % (_CUAD_DATA_ZIP, e)
+            f"Failed to download CUAD data.zip. Check network access.\nURL: {_CUAD_DATA_ZIP}\nError: {e}"
         ) from e
     raw = zf.read("test.json")
     data = json.loads(raw.decode("utf-8"))
@@ -142,15 +141,15 @@ def _evaluate(
         gold = gold_by_qid.get(qid)
         if not gold:
             continue
-        kw: dict[str, Any] = dict(
-            top_k=10,
-            bm25_weight=bm25_w,
-            vector_weight=vec_w,
-            expand_structure=expand_structure,
-            expand_graph=expand_graph,
-            use_vectors=True,
-            fusion=fusion,
-        )
+        kw: dict[str, Any] = {
+            "top_k": 10,
+            "bm25_weight": bm25_w,
+            "vector_weight": vec_w,
+            "expand_structure": expand_structure,
+            "expand_graph": expand_graph,
+            "use_vectors": True,
+            "fusion": fusion,
+        }
         if expand_graph and graph_edge_types is not None:
             kw["graph_edge_types"] = graph_edge_types
         res = retriever.retrieve(row["question"], **kw)
@@ -169,16 +168,16 @@ def _system_block(model_name: str) -> str:
     import platform
 
     lines = [
-        "Python: %s" % platform.python_version(),
-        "Platform: %s" % platform.platform(),
+        f"Python: {platform.python_version()}",
+        f"Platform: {platform.platform()}",
     ]
     try:
         import sentence_transformers as st
 
-        lines.append("sentence-transformers: %s" % st.__version__)
+        lines.append(f"sentence-transformers: {st.__version__}")
     except ImportError:
         lines.append("sentence-transformers: (import failed)")
-    lines.append("Embedding model: %s" % model_name)
+    lines.append(f"Embedding model: {model_name}")
     return "\n".join(lines)
 
 
@@ -212,7 +211,7 @@ def main() -> int:
     documents, blocks, edges = _merge_corpus(sample_rows)
     n_contracts = len(documents)
     print(
-        "Indexing %d blocks, %d edges, %d contracts…" % (len(blocks), len(edges), n_contracts),
+        f"Indexing {len(blocks)} blocks, {len(edges)} edges, {n_contracts} contracts…",
         flush=True,
     )
 
@@ -256,7 +255,7 @@ def main() -> int:
     scores_block: list[RetrievalScore] = []
     scores_span: list[RetrievalScore] = []
     for label, bw, vw, ex_s, ex_g, gt, use_rr, fus in configs:
-        print("Evaluating: %s…" % label, flush=True)
+        print(f"Evaluating: {label}…", flush=True)
         r = retriever_rerank if use_rr else retriever_base
         raw_block, raw_span = _evaluate(
             r,
@@ -285,12 +284,12 @@ def main() -> int:
     header = f"{'Method':<30} {'R@1':>5}  {'R@3':>5}  {'R@5':>5}  {'MRR@10':>7}"
     lines_out = [
         "CUAD retrieval benchmark — RAGNav",
-        "Timestamp (UTC): %s" % datetime.now(timezone.utc).isoformat(),
-        "ragnav version: %s" % ragnav_version,
-        "n_questions (requested): %d" % args.sample,
-        "n_questions (evaluated, with gold in index): %d" % len(eval_rows),
-        "seed: %d" % args.seed,
-        "n_unique_contracts in index: %d" % n_contracts,
+        f"Timestamp (UTC): {datetime.now(timezone.utc).isoformat()}",
+        f"ragnav version: {ragnav_version}",
+        f"n_questions (requested): {args.sample}",
+        f"n_questions (evaluated, with gold in index): {len(eval_rows)}",
+        f"seed: {args.seed}",
+        f"n_unique_contracts in index: {n_contracts}",
         "",
         "=== Block-level (gold block_id in top-k) ===",
         header,
@@ -310,7 +309,7 @@ def main() -> int:
         lines_out.append(s.row())
     lines_out.extend(["", "--- System ---", _system_block(model_name), ""])
     out_path.write_text("\n".join(lines_out), encoding="utf-8")
-    print("\nWrote %s" % out_path, flush=True)
+    print(f"\nWrote {out_path}", flush=True)
     return 0
 
 

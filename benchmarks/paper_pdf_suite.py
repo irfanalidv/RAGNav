@@ -48,17 +48,17 @@ def _cases_from_manifest(manifest: dict[str, Any], *, pdf_name: str) -> list[Eva
                 EvalCase(
                     case_id=str(c.get("case_id") or c.get("query") or "case"),
                     query=str(c.get("query") or ""),
-                    expected_pages=set(
+                    expected_pages={
                         int(x)
                         for x in (c.get("expected_pages") or [])
                         if isinstance(x, int) or str(x).isdigit()
-                    ),
-                    expected_text_substrings=set(
+                    },
+                    expected_text_substrings={
                         str(x)
                         for x in (c.get("expected_text_substrings") or [])
                         if isinstance(x, (str, int))
-                    ),
-                    tags=set(str(x) for x in (c.get("tags") or []) if isinstance(x, (str, int))),
+                    },
+                    tags={str(x) for x in (c.get("tags") or []) if isinstance(x, (str, int))},
                 )
             )
         return out or None

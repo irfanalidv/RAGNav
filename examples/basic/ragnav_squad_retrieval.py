@@ -47,7 +47,7 @@ def main() -> None:
 
     documents = [p[0] for _, p in sorted(seen.items(), key=lambda x: x[0])]
     blocks = [p[1] for _, p in sorted(seen.items(), key=lambda x: x[0])]
-    print("Building hybrid index (%d passages, %s)…" % (len(blocks), model_name), flush=True)
+    print(f"Building hybrid index ({len(blocks)} passages, {model_name})…", flush=True)
     t0 = time.perf_counter()
     llm = FakeLLMClient()
     index = RAGNavIndex.build(
@@ -59,7 +59,7 @@ def main() -> None:
         embed_batch_size=32,
     )
     t_build = time.perf_counter() - t0
-    print("Index build done in %.2fs\n" % t_build, flush=True)
+    print(f"Index build done in {t_build:.2f}s\n", flush=True)
 
     retriever = RAGNavRetriever(index=index, llm=llm)
 
@@ -109,7 +109,7 @@ def main() -> None:
     for item in picks[:5]:
         row = item["row"]
         did = _doc_id(row["context"])
-        gold_bid = "%s:p0" % did
+        gold_bid = f"{did}:p0"
         q = item["question"]
         gold = item["gold"]
         tq = time.perf_counter()
@@ -128,12 +128,11 @@ def main() -> None:
         )
         hit = top is not None and gold.lower() in top.text.lower()
         mark = "✓" if hit else "✗"
-        print("[%s] %s Q: %s" % (mark, item["tag"], q))
-        print("    Gold: %s" % gold[:120])
-        print("    Top:  %s" % snippet.replace("\n", " "))
+        print("[{}] {} Q: {}".format(mark, item["tag"], q))
+        print(f"    Gold: {gold[:120]}")
+        print("    Top:  {}".format(snippet.replace("\n", " ")))
         print(
-            "    Query time: %.0f ms | gold block id in top-5: %s\n"
-            % (tq_ms, gold_bid in {b.block_id for b in res.blocks[:5]})
+            f"    Query time: {tq_ms:.0f} ms | gold block id in top-5: {gold_bid in {b.block_id for b in res.blocks[:5]}}\n"
         )
 
 

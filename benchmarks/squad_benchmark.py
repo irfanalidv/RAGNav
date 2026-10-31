@@ -26,7 +26,7 @@ _BENCH_DIR = Path(__file__).resolve().parent
 if str(_BENCH_DIR) not in sys.path:
     sys.path.insert(0, str(_BENCH_DIR))
 
-from _runner import print_table  # noqa: E402
+from _runner import print_table
 from _runner import score as retrieval_score
 
 
@@ -124,7 +124,7 @@ def _system_block(model_name: str) -> str:
     try:
         import sentence_transformers as st
 
-        lines.append("sentence-transformers: %s" % st.__version__)
+        lines.append(f"sentence-transformers: {st.__version__}")
     except ImportError:
         lines.append("sentence-transformers: (import failed)")
     lines.append(f"Embedding model: {model_name}")
@@ -156,8 +156,7 @@ def main() -> int:
     sample_rows = _collect_sample(rows, args.sample, args.seed)
     documents, blocks = _unique_passages(sample_rows)
     print(
-        "Building index: %d unique passages, %d questions in sample…"
-        % (len(blocks), len(sample_rows)),
+        f"Building index: {len(blocks)} unique passages, {len(sample_rows)} questions in sample…",
         flush=True,
     )
     llm = FakeLLMClient()
@@ -183,7 +182,7 @@ def main() -> int:
     ]
     scores = []
     for label, bw, vw, retriever, fusion in configs:
-        print("Evaluating: %s…" % label, flush=True)
+        print(f"Evaluating: {label}…", flush=True)
         raw = _evaluate(retriever, sample_rows, bm25_w=bw, vec_w=vw, fusion=fusion)
         scores.append(retrieval_score(label, raw))
 
@@ -195,11 +194,11 @@ def main() -> int:
     out_path = results_dir / "squad_results.txt"
     buf = io.StringIO()
     buf.write("SQuAD retrieval benchmark — RAGNav\n")
-    buf.write("Timestamp (UTC): %s\n" % datetime.now(timezone.utc).isoformat())
-    buf.write("ragnav version: %s\n" % ragnav_version)
-    buf.write("n_questions (requested): %d\n" % args.sample)
-    buf.write("seed: %d\n" % args.seed)
-    buf.write("unique passages indexed: %d\n" % len(blocks))
+    buf.write(f"Timestamp (UTC): {datetime.now(timezone.utc).isoformat()}\n")
+    buf.write(f"ragnav version: {ragnav_version}\n")
+    buf.write(f"n_questions (requested): {args.sample}\n")
+    buf.write(f"seed: {args.seed}\n")
+    buf.write(f"unique passages indexed: {len(blocks)}\n")
     buf.write("\n")
     header = f"{'Method':<30} {'R@1':>5}  {'R@3':>5}  {'R@5':>5}  {'MRR@10':>7}"
     buf.write(header + "\n")
@@ -211,7 +210,7 @@ def main() -> int:
     buf.write("\n")
     text = buf.getvalue()
     out_path.write_text(text, encoding="utf-8")
-    print("\nWrote %s" % out_path, flush=True)
+    print(f"\nWrote {out_path}", flush=True)
     return 0
 
 

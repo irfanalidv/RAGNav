@@ -5,11 +5,11 @@ from .retriever import EntityGraphRetriever, EntityGraphRetrieverConfig
 
 __all__ = [
     "Entity",
+    "EntityGraph",
+    "EntityGraphRetriever",
+    "EntityGraphRetrieverConfig",
     "EntityType",
     "Relation",
     "RelationType",
-    "EntityGraph",
     "build_entity_graph",
-    "EntityGraphRetriever",
-    "EntityGraphRetrieverConfig",
 ]

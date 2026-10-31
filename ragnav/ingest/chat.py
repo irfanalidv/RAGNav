@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 from typing import Any
 
@@ -78,7 +79,7 @@ def ingest_slack_messages_graph(
         g.add_block(b)
 
     # next edges
-    for a, b in zip(blocks, blocks[1:]):
+    for a, b in itertools.pairwise(blocks):
         g.add_edge(Edge(src=a.block_id, dst=b.block_id, type="next"))
 
     # thread edges

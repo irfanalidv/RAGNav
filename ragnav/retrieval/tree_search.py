@@ -204,8 +204,8 @@ def hybrid_tree_search_llm(
 
     bm_scores = _minmax_norm([s for _, s in bm])
     ve_scores = _minmax_norm([s for _, s in ve])
-    bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores)]
-    ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores)]
+    bm_scored = [(b, w_bm25 * s) for (b, _), s in zip(bm, bm_scores, strict=True)]
+    ve_scored = [(b, w_vec * s) for (b, _), s in zip(ve, ve_scores, strict=True)]
     merged = _dedupe_keep_best(bm_scored + ve_scored)
     merged.sort(key=lambda x: x[1], reverse=True)
 
