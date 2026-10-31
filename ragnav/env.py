@@ -10,6 +10,6 @@ def load_env() -> None:
     """
     try:
         from dotenv import load_dotenv
-    except Exception:
+    except ImportError:
         return
     load_dotenv()

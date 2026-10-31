@@ -23,6 +23,16 @@ def _import_pymupdf() -> Any:
         return fitz
 
 
+def _page_texts(fitz: Any, data: bytes, max_pages: int | None) -> list[str]:
+    """Extract plain text for the first ``max_pages`` pages and close the document."""
+    pdf = fitz.open(stream=data, filetype="pdf")
+    try:
+        n = pdf.page_count if max_pages is None else min(max_pages, pdf.page_count)
+        return [pdf.load_page(i).get_text("text") or "" for i in range(n)]
+    finally:
+        pdf.close()
+
+
 @dataclass(frozen=True)
 class PdfIngestOptions:
     doc_id_prefix: str = "pdf:"
@@ -55,29 +65,22 @@ def ingest_pdf_bytes(
 
     opts = opts or PdfIngestOptions()
     if opts.paper_mode:
-        doc, blocks, _edges = ingest_pdf_bytes_paper(
+        paper_doc, paper_blocks, _edges = ingest_pdf_bytes_paper(
             data,
             name=name,
             metadata=metadata,
             opts=opts,
         )
-        return doc, blocks
+        return paper_doc, paper_blocks
     doc_meta: dict[str, Any] = {"type": "pdf"}
     if metadata:
         doc_meta.update(metadata)
 
     doc = Document(doc_id=f"{opts.doc_id_prefix}{name}", source=name, metadata=doc_meta)
 
-    pdf = fitz.open(stream=data, filetype="pdf")
-    total_pages = pdf.page_count
-    max_pages = opts.max_pages if opts.max_pages is not None else total_pages
-    max_pages = min(max_pages, total_pages)
-
     blocks: list[Block] = []
-    for i in range(max_pages):
-        page = pdf.load_page(i)
-        text = page.get_text("text") or ""
-        text = text.strip()
+    for i, raw_text in enumerate(_page_texts(fitz, data, opts.max_pages)):
+        text = raw_text.strip()
         if not text:
             continue
         blocks.append(
@@ -121,10 +124,7 @@ def ingest_pdf_bytes_paper(
         doc_meta.update(metadata)
     doc = Document(doc_id=f"{opts.doc_id_prefix}{name}", source=name, metadata=doc_meta)
 
-    pdf = fitz.open(stream=data, filetype="pdf")
-    total_pages = pdf.page_count
-    max_pages = opts.max_pages if opts.max_pages is not None else total_pages
-    max_pages = min(max_pages, total_pages)
+    page_texts = _page_texts(fitz, data, opts.max_pages)
 
     blocks: list[Block] = []
     edges: list[Edge] = []
@@ -175,10 +175,9 @@ def ingest_pdf_bytes_paper(
 
     prev_block_id: str | None = None
 
-    for page_idx in range(max_pages):
+    for page_idx, raw_text in enumerate(page_texts):
         page_num = page_idx + 1
-        page = pdf.load_page(page_idx)
-        text = (page.get_text("text") or "").strip()
+        text = raw_text.strip()
         if not text:
             continue
         lines = [ln.rstrip() for ln in text.splitlines()]

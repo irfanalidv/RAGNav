@@ -34,7 +34,7 @@ class RAGNavRetriever:
     reranker: CrossEncoderReranker | None = None
     cost_tracker: CostTracker | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.llm is None:
             from ..llm.fake import FakeLLMClient
 
@@ -59,7 +59,15 @@ class RAGNavRetriever:
             and self.llm is not None
             and getattr(self.llm, "cost_tracker", None) is None
         ):
-            self.llm.cost_tracker = self.cost_tracker
+            # LLMClient is a Protocol without cost_tracker; concrete clients expose it.
+            setattr(self.llm, "cost_tracker", self.cost_tracker)  # noqa: B010
+
+    @property
+    def _llm(self) -> LLMClient:
+        """The LLM client; always set after ``__post_init__``."""
+        if self.llm is None:  # pragma: no cover - __post_init__ guarantees a client
+            raise RAGNavLLMError("RAGNavRetriever has no LLM client.")
+        return self.llm
 
     def retrieve(
         self,
@@ -148,9 +156,9 @@ class RAGNavRetriever:
             if not vidx.uses_sentence_transformers:
                 if trace:
                     with trace.span("embed_query_ms"):
-                        qemb = self.llm.embed(inputs=[query])[0]
+                        qemb = self._llm.embed(inputs=[query])[0]
                 else:
-                    qemb = self.llm.embed(inputs=[query])[0]
+                    qemb = self._llm.embed(inputs=[query])[0]
             ve = vidx.search_for_query(
                 query, query_embedding=qemb, k=k_vec, allowed_doc_ids=allowed_doc_ids
             )
@@ -325,12 +333,12 @@ class RAGNavRetriever:
     def route_documents_by_semantics(
         self, query: str, **kwargs: Any
     ) -> list[tuple[str, float, int]]:
-        return routing.route_documents_by_semantics(self.index, self.llm, query, **kwargs)
+        return routing.route_documents_by_semantics(self.index, self._llm, query, **kwargs)
 
     def route_pages_by_semantics(
         self, query: str, **kwargs: Any
     ) -> list[tuple[str, int, float, int]]:
-        return routing.route_pages_by_semantics(self.index, self.llm, query, **kwargs)
+        return routing.route_pages_by_semantics(self.index, self._llm, query, **kwargs)
 
     def retrieve_paper(
         self,
@@ -353,7 +361,7 @@ class RAGNavRetriever:
         3) optionally follow cross-references via `link_to` edges
         """
         ranked_pages = routing.route_pages_by_semantics(
-            self.index, self.llm, query, allowed_doc_ids=allowed_doc_ids, top_pages=top_pages
+            self.index, self._llm, query, allowed_doc_ids=allowed_doc_ids, top_pages=top_pages
         )
         if not ranked_pages:
             res = self.retrieve(
@@ -403,10 +411,10 @@ class RAGNavRetriever:
         return tree_search.hybrid_tree_search_llm(self, query, **kwargs)
 
     def generate_doc_descriptions(self, **kwargs: Any) -> dict[str, str]:
-        return routing.generate_doc_descriptions(self.index, self.llm, **kwargs)
+        return routing.generate_doc_descriptions(self.index, self._llm, **kwargs)
 
     def route_documents_by_description(self, query: str, **kwargs: Any) -> list[str]:
-        return routing.route_documents_by_description(self.index, self.llm, query, **kwargs)
+        return routing.route_documents_by_description(self.index, self._llm, query, **kwargs)
 
     def route_documents_by_metadata(self, *, required: dict[str, Any]) -> list[str]:
         return routing.route_documents_by_metadata(self.index, required=required)

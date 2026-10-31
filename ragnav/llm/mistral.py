@@ -3,11 +3,31 @@ from __future__ import annotations
 import os
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from ..cost import CostTracker, estimate_tokens_from_text
 from ..exceptions import RAGNavLLMError
 from .base import LLMClient
+
+
+def _message_text(message: Any) -> str:
+    """Text of a chat message whose ``content`` is a string, a list of chunks, or None.
+
+    Reasoning models in mistralai 2.x can return a list of content chunks (text plus
+    "thinking" chunks) instead of a plain string; keep only the text chunks.
+    """
+    content = getattr(message, "content", None)
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    parts: list[str] = []
+    for chunk in content:
+        if getattr(chunk, "type", "text") == "text":
+            text = getattr(chunk, "text", None)
+            if isinstance(text, str):
+                parts.append(text)
+    return "".join(parts)
 
 
 @dataclass(frozen=True)
@@ -28,10 +48,9 @@ class MistralClient(LLMClient):
     def __init__(self, cfg: MistralConfig | None = None, cost_tracker: CostTracker | None = None):
         try:
             from dotenv import load_dotenv
-        except Exception:
-            load_dotenv = None
-
-        if load_dotenv:
+        except ImportError:
+            pass  # python-dotenv is optional; plain environment variables still work
+        else:
             load_dotenv()
 
         try:
@@ -64,10 +83,10 @@ class MistralClient(LLMClient):
         prompt_text = "\n".join(str(m.get("content") or "") for m in messages)
         resp = self._client.chat.complete(
             model=model_name,
-            messages=messages,
+            messages=cast(Any, messages),  # plain role/content dicts are accepted at runtime
             temperature=temperature,
         )
-        text = (resp.choices[0].message.content or "").strip()
+        text = _message_text(resp.choices[0].message).strip()
         if self.cost_tracker is not None:
             self.cost_tracker.record(
                 model_name,
@@ -81,7 +100,10 @@ class MistralClient(LLMClient):
             model=model or self.cfg.embed_model,
             inputs=list(inputs),
         )
-        return [d.embedding for d in resp.data]
+        vectors = [d.embedding for d in resp.data]
+        if any(v is None for v in vectors):
+            raise RAGNavLLMError("Mistral embeddings response contained an item without a vector.")
+        return [v for v in vectors if v is not None]
 
     def usage_from_response(self, response_obj: Any) -> dict[str, Any]:
         # Placeholder for future: standardized token accounting.

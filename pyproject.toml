@@ -145,9 +145,10 @@ include = ["ragnav*"]
 python_version = "3.10"
 files = ["ragnav"]
 ignore_missing_imports = true
-follow_imports = "skip"
-warn_unused_ignores = false
-check_untyped_defs = false
+warn_unused_ignores = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
 
 [tool.coverage.run]
 source = ["ragnav"]

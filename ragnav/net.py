@@ -7,14 +7,15 @@ from .exceptions import RAGNavIngestError
 
 def download_bytes(url: str, *, out_path: str | Path | None = None, timeout_s: int = 60) -> bytes:
     """
-    Download bytes from a URL with an optional on-disk cache.
+    Download bytes from a URL (HTTP timeout ``timeout_s``) and optionally save a copy
+    to ``out_path``. The file at ``out_path`` is always overwritten, never read back.
 
     This function lives in `ragnav` (not `examples/` or `pipelines/`) so the simplest
     end-user flows can share one implementation.
     """
     try:
         import requests
-    except Exception as e:
+    except ImportError as e:
         raise RAGNavIngestError(
             'Missing optional dependency `requests`. Install with: pip install -e ".[pdf]"'
         ) from e

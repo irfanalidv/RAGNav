@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from ..models import Block
+from ..models import Block, RetrievalResult
 from ..retrieval import RAGNavRetriever
 from .graph import EntityGraph
 
@@ -98,5 +98,5 @@ class EntityGraphRetriever:
         rag_retriever: RAGNavRetriever,
         allowed_doc_ids: set[str] | None = None,
         k_final: int = 10,
-    ):
+    ) -> RetrievalResult:
         return rag_retriever.retrieve(query, allowed_doc_ids=allowed_doc_ids, k_final=k_final)

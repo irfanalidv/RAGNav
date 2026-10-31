@@ -59,7 +59,7 @@ def agentic_retrieve_then_answer(
 
         try:
             action = extract_json(raw)
-        except Exception:
+        except ValueError:
             action = {"action": "retrieve", "query": query}
 
         if isinstance(action, dict) and action.get("action") == "retrieve":

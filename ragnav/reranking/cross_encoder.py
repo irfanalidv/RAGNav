@@ -7,6 +7,7 @@ Requires sentence-transformers (same dep as embeddings extra).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from ..exceptions import RAGNavEmbeddingError
 from ..models import Block
@@ -23,7 +24,7 @@ class CrossEncoderReranker:
 
     model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     max_length: int = 512
-    _model: object | None = field(default=None, init=False, repr=False)
+    _model: Any = field(default=None, init=False, repr=False)
 
     def _load(self) -> None:
         if self._model is not None:

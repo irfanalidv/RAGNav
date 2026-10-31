@@ -21,13 +21,16 @@ def extract_json(text: str) -> Any:
     - Supports ```json fenced blocks
     - Tries to parse the whole string
     - Falls back to parsing the first {...} or [...] region
+
+    Raises:
+        ValueError: no JSON could be extracted (``json.JSONDecodeError`` is a subclass).
     """
     raw = _strip_code_fences(text)
 
     # 1) whole parse
     try:
         return json.loads(raw)
-    except Exception:
+    except json.JSONDecodeError:
         pass
 
     # 2) find first object/array region

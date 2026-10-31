@@ -8,6 +8,7 @@ from ..answering.inline_citations import answer_with_inline_citations
 from ..cache.sqlite_cache import EmbeddingCache
 from ..ingest.pdf import PdfIngestOptions, ingest_pdf_bytes_paper
 from ..llm.base import LLMClient
+from ..models import RetrievalResult
 from ..net import download_pdf
 from ..retrieval import RAGNavIndex, RAGNavRetriever
 
@@ -118,7 +119,9 @@ class PaperRAG:
             embedding_cache=embedding_cache,
         )
 
-    def retrieve(self, query: str, *, cfg: PaperRAGConfig = PaperRAGConfig(), **kwargs: Any):
+    def retrieve(
+        self, query: str, *, cfg: PaperRAGConfig = PaperRAGConfig(), **kwargs: Any
+    ) -> RetrievalResult:
         """
         Paper-optimized retrieval result (blocks + trace).
 

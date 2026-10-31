@@ -109,7 +109,7 @@ Rules:
         )
         try:
             parsed = extract_json(raw)
-        except Exception:
+        except ValueError:
             parsed = None
 
         node_list: list[str] = []
@@ -242,7 +242,7 @@ Rules:
     )
     try:
         parsed = extract_json(raw)
-    except Exception:
+    except ValueError:
         parsed = None
 
     node_list: list[str] = []

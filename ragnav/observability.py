@@ -19,25 +19,24 @@ class Trace:
     def set_meta(self, key: str, value: Any) -> None:
         self.meta[key] = value
 
-    def span(self, name: str):
+    def span(self, name: str) -> _Span:
         return _Span(self, name)
 
 
 class _Span:
     _t0: float = 0.0
 
-    def __init__(self, trace: Trace, name: str):
+    def __init__(self, trace: Trace, name: str) -> None:
         self._trace = trace
         self._name = name
         self._t0 = 0.0
 
-    def __enter__(self):
+    def __enter__(self) -> _Span:
         self._t0 = time.perf_counter()
         return self
 
-    def __exit__(self, exc_type, exc, tb):
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
         dt_ms = (time.perf_counter() - self._t0) * 1000.0
         self._trace.timings_ms[self._name] = float(
             self._trace.timings_ms.get(self._name, 0.0) + dt_ms
         )
-        return False

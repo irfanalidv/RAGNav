@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,7 +25,7 @@ def vectorless_rag_from_pdf_bytes(
     llm: LLMClient,
     pdf_name: str = "document.pdf",
     cfg: VectorlessRagConfig = VectorlessRagConfig(),
-) -> tuple[list[dict], str]:
+) -> tuple[Callable[..., list[dict]], str]:
     """
     Vectorless RAG:
     - No vector DB
@@ -55,7 +56,7 @@ def vectorless_rag_from_pdf_bytes(
 def vectorless_answer(
     *,
     query: str,
-    retrieve_fn,
+    retrieve_fn: Callable[[str], list[dict]],
     llm: LLMClient,
 ) -> str:
     hits = retrieve_fn(query)
@@ -76,7 +77,7 @@ def vectorless_rag_pdf_url(
     llm: LLMClient,
     cfg: VectorlessRagConfig = VectorlessRagConfig(),
     cache_path: str | Path | None = Path("data") / "document.pdf",
-) -> tuple[list[dict], str]:
+) -> tuple[Callable[..., list[dict]], str]:
     """
     End-to-end vectorless RAG setup for a PDF URL.
     """

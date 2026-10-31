@@ -48,6 +48,16 @@ class SqliteKV:
         )
         self._conn.commit()
 
+    def close(self) -> None:
+        """Close the underlying SQLite connection (safe to call more than once)."""
+        self._conn.close()
+
+    def __enter__(self) -> SqliteKV:
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+        self.close()
+
     def _expired(self, stored_at: float) -> bool:
         ttl = self._config.ttl_seconds
         if ttl is None:

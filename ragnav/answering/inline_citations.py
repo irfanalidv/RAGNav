@@ -126,8 +126,8 @@ Context blocks:
         parsed = extract_json(raw)
         if isinstance(parsed, dict) and isinstance(parsed.get("answer"), str):
             ans = parsed["answer"]
-    except Exception:
-        pass
+    except ValueError:
+        pass  # plain-text answer (the common case)
 
     ans = normalize_citations(ans)
     v = validate_inline_citations(ans, allowed_block_ids=allowed)

@@ -50,7 +50,7 @@ def ingest_slack_messages_graph(
     def _ts(m: dict[str, Any]) -> float:
         try:
             return float(m.get("ts", 0))
-        except Exception:
+        except (TypeError, ValueError):
             return 0.0
 
     msgs = sorted(messages, key=_ts)

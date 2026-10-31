@@ -199,7 +199,7 @@ Return ONLY the JSON structure.
         picked = parsed.get("answer", []) if isinstance(parsed, dict) else []
         picked = [d for d in picked if isinstance(d, str) and d in descriptions]
         return picked[:top_docs]
-    except Exception:
+    except ValueError:
         routed = route_documents_by_semantics(index, llm, query, top_docs=top_docs)
         return [doc_id for doc_id, _, _ in routed]
 

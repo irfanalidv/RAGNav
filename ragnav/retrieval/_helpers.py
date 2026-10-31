@@ -78,9 +78,9 @@ def _fuse_retrieval_rankings(
     fused = _rrf_fuse(ranked_lists)
     out: list[tuple[Block, float]] = []
     for bid, rrf_s in fused:
-        b = by_id.get(bid)
-        if b is not None:
-            out.append((b, rrf_s))
+        hit = by_id.get(bid)
+        if hit is not None:
+            out.append((hit, rrf_s))
     return out
 
 
@@ -125,7 +125,7 @@ def _expand_structure(
     out: list[Block] = []
     seen: set[str] = set()
 
-    def add(b: Block):
+    def add(b: Block) -> None:
         if b.block_id in seen:
             return
         seen.add(b.block_id)

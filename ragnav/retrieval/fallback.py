@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..llm.base import LLMClient
 from ..models import ConfidenceLevel, RetrievalResult
@@ -59,7 +59,7 @@ class QueryFallback:
         self._llm = llm
         self._config = config or FallbackConfig()
 
-    def retrieve(self, query: str, **retrieve_kwargs) -> FallbackResult:
+    def retrieve(self, query: str, **retrieve_kwargs: Any) -> FallbackResult:
         cfg = self._config
         initial = self._retriever.retrieve(query, **retrieve_kwargs)
         best = initial

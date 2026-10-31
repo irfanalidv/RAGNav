@@ -35,7 +35,7 @@ def ingest_html_string_graph(
     """
     try:
         from bs4 import BeautifulSoup
-    except Exception as e:
+    except ImportError as e:
         raise RAGNavIngestError(
             'Missing optional dependency `beautifulsoup4`. Install with: pip install -e ".[messy]"'
         ) from e
@@ -86,8 +86,8 @@ def ingest_html_string_graph(
                 links.append((block_id, href))
 
     # next edges
-    for a, b in itertools.pairwise(blocks):
-        g.add_edge(Edge(src=a.block_id, dst=b.block_id, type="next"))
+    for prev, cur in itertools.pairwise(blocks):
+        g.add_edge(Edge(src=prev.block_id, dst=cur.block_id, type="next"))
 
     # link edges (href is stored; dst unknown without resolution)
     for src_id, href in links:
