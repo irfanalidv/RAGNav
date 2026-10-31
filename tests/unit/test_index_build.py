@@ -86,3 +86,30 @@ def test_index_build_raises_when_llm_returns_incomplete_embeddings():
             llm=llm,
             use_sentence_transformers=False,
         )
+
+
+def test_bm25_only_index_needs_no_llm_client():
+    """build_vectors=False must not try to construct a Mistral client."""
+    with patch("ragnav.llm.mistral.MistralClient", side_effect=AssertionError("not needed")):
+        idx = RAGNavIndex.build(
+            documents=[Document(doc_id="d")],
+            blocks=[Block(block_id="b", doc_id="d", type="paragraph", text="offline bm25")],
+            build_vectors=False,
+        )
+    assert not idx.has_vectors
+    assert idx.bm25.search("bm25", k=1)[0][0].block_id == "b"
+
+
+def test_missing_sentence_transformers_without_llm_stays_bm25_only(caplog):
+    """No llm= and no sentence-transformers: never fall back to hash-based fake embeddings."""
+
+    def no_st(texts, model_name):
+        raise RAGNavEmbeddingError("sentence-transformers missing") from ImportError("no st")
+
+    with patch("ragnav.index.vectors._encode_texts_sentence_transformer", side_effect=no_st):
+        idx = RAGNavIndex.build(
+            documents=[Document(doc_id="d")],
+            blocks=[Block(block_id="b", doc_id="d", type="paragraph", text="alpha")],
+        )
+    assert idx.vectors is None
+    assert "BM25-only" in caplog.text

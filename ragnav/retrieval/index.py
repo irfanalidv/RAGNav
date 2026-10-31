@@ -48,23 +48,20 @@ class RAGNavIndex:
         vector_model: str | None = None,
         use_sentence_transformers: bool = True,
     ) -> RAGNavIndex:
-        if llm is None:
-            if use_sentence_transformers and build_vectors:
-                from ..llm.fake import FakeLLMClient
+        # An LLM client is only needed to embed blocks when sentence-transformers is not used.
+        # (A BM25-only index, build_vectors=False, needs no client at all.)
+        if llm is None and build_vectors and not use_sentence_transformers:
+            try:
+                from ..llm.mistral import MistralClient  # optional dependency
 
-                llm = FakeLLMClient()
-            else:
-                try:
-                    from ..llm.mistral import MistralClient  # optional dependency
-
-                    llm = MistralClient()
-                except Exception as e:
-                    raise RAGNavLLMError(
-                        "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient), "
-                        "or use use_sentence_transformers=True with build_vectors=True for local "
-                        "embeddings, "
-                        "or install Mistral support with: pip install ragnav[mistral]"
-                    ) from e
+                llm = MistralClient()
+            except Exception as e:
+                raise RAGNavLLMError(
+                    "No LLM client provided. Pass `llm=...` (e.g. FakeLLMClient), "
+                    "or use use_sentence_transformers=True with build_vectors=True for local "
+                    "embeddings, "
+                    "or install Mistral support with: pip install ragnav[mistral]"
+                ) from e
 
         docs_map = {d.doc_id: d for d in documents}
         blocks_by_id = {b.block_id: b for b in blocks}
@@ -93,16 +90,24 @@ class RAGNavIndex:
                     )
                     vectors = vi
                 except RAGNavEmbeddingError as e:
-                    if isinstance(e.__cause__, ImportError):
+                    if not isinstance(e.__cause__, ImportError):
+                        raise
+                    if llm is None:
+                        # Without a real client the only "fallback" would be hash-based fake
+                        # embeddings, which add noise to every ranking. Stay BM25-only instead.
+                        _LOG.warning(
+                            "sentence-transformers not available and no llm= given; building a "
+                            "BM25-only index. For local embeddings install: "
+                            "pip install ragnav[embeddings]"
+                        )
+                    else:
                         _LOG.warning(
                             "sentence-transformers not available; falling back to LLM embeddings "
                             "for vectors. "
                             "For local embeddings install: pip install ragnav[embeddings]"
                         )
-                    else:
-                        raise
 
-            if vectors is None:
+            if vectors is None and llm is not None:
                 texts = [b.text for b in blocks]
                 embeddings: list[list[float] | None] = [None] * len(texts)
                 model_hint: str | None = None
