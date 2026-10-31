@@ -130,6 +130,9 @@ class RAGNavRetriever:
             "graph_hops": graph_hops,
             "fusion": fusion,
             "reranker_model": self.reranker.model_name if self.reranker is not None else None,
+            # Part of the key: a result cached without a policy must never be served to a
+            # call that asked for one (dropped injection blocks would come back).
+            "content_policy": repr(content_policy) if content_policy is not None else None,
         }
         if retrieval_cache is not None:
             cached_ids = retrieval_cache.get(cache_payload)
