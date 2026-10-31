@@ -4,6 +4,18 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-10-31
+
+### Fixed
+
+- Inline citations: LLMs frequently echo the context label and write `[[BLOCK_ID=<id>]]`, which
+  failed validation and made `answer_with_inline_citations` raise (callers such as nepal-gov-agent
+  then silently fell back to un-synthesized answers). Citations are now normalized to `[[<id>]]`
+  before validation, and the prompt tells the model to copy the bare id. Verified live with
+  `gpt-4o-mini`. New public helper: `ragnav.answering.normalize_citations`.
+- PDF ingest imports `pymupdf` instead of the deprecated `fitz` alias (falls back to `fitz` on
+  older PyMuPDF), removing the PyMuPDF `FutureWarning`.
+
 ## [0.5.0] - 2026-10-31
 
 ### Added

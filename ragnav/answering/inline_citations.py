@@ -9,6 +9,18 @@ from ..llm.base import LLMClient
 from ..models import Block
 
 _CITE_RE = re.compile(r"\[\[([^\]]+)\]\]")
+# Models often echo the context header label, e.g. ``[[BLOCK_ID=doc#p3]]``.
+_LABEL_PREFIX_RE = re.compile(r"^\s*BLOCK_ID\s*[=:]\s*", re.IGNORECASE)
+
+
+def normalize_citations(answer: str) -> str:
+    """Rewrite ``[[BLOCK_ID=x]]`` / ``[[ x ]]`` citations to the canonical ``[[x]]`` form."""
+
+    def _fix(m: re.Match[str]) -> str:
+        inner = _LABEL_PREFIX_RE.sub("", m.group(1)).strip()
+        return f"[[{inner}]]"
+
+    return _CITE_RE.sub(_fix, answer or "")
 
 
 @dataclass(frozen=True)
@@ -96,6 +108,7 @@ You are answering a question using ONLY the provided context blocks.
 
 Rules (STRICT):
 - Every sentence in your answer MUST end with one or more citations in the form [[BLOCK_ID]].
+  Copy the block id exactly as it appears after "BLOCK_ID=" in the context.
 - You MUST only cite BLOCK_ID values that appear in the provided context.
 - If the context is insufficient, say so, but still cite the closest relevant blocks.
 
@@ -116,6 +129,7 @@ Context blocks:
     except Exception:
         pass
 
+    ans = normalize_citations(ans)
     v = validate_inline_citations(ans, allowed_block_ids=allowed)
     if not v["ok"]:
         raise ValueError(f"Answer citation validation failed: {v}")

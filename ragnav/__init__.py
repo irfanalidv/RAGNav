@@ -7,7 +7,7 @@ from .retrieval import RAGNavIndex, RAGNavRetriever
 try:
     __version__ = _pkg_version("ragnav")
 except PackageNotFoundError:  # pragma: no cover - running from a source tree without install
-    __version__ = "0.5.0"
+    __version__ = "0.5.1"
 
 __all__ = [
     "Block",

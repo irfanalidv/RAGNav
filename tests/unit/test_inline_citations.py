@@ -5,6 +5,7 @@ import pytest
 from ragnav.answering.inline_citations import (
     answer_with_inline_citations,
     build_cited_context,
+    normalize_citations,
     validate_inline_citations,
 )
 from ragnav.llm.fake import FakeLLMClient
@@ -70,3 +71,20 @@ def test_answer_with_inline_citations_raises_on_invalid_citations():
 
     with pytest.raises(ValueError, match="citation validation failed"):
         answer_with_inline_citations(llm=BadLLM(), query="q", blocks=blocks)
+
+
+def test_normalize_citations_strips_echoed_label():
+    raw = "A [[BLOCK_ID=pdf:x.pdf#p3]]. B [[ block_id: b2 ]] and [[b1]]."
+    assert normalize_citations(raw) == "A [[pdf:x.pdf#p3]]. B [[b2]] and [[b1]]."
+
+
+def test_answer_with_inline_citations_accepts_label_echo():
+    blocks = [Block(block_id="pdf:x.pdf#p3", doc_id="pdf:x.pdf", type="paragraph", text="t")]
+
+    class EchoLLM(FakeLLMClient):
+        def chat(self, *, messages, model=None, temperature=0):
+            return "Nepal aims to train 5000 professionals [[BLOCK_ID=pdf:x.pdf#p3]]."
+
+    out = answer_with_inline_citations(llm=EchoLLM(), query="q", blocks=blocks)
+    assert out.cited_block_ids == ("pdf:x.pdf#p3",)
+    assert "[[pdf:x.pdf#p3]]" in out.answer

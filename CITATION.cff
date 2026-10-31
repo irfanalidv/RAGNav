@@ -5,7 +5,7 @@ abstract: "Hybrid structure-aware retrieval for RAG: BM25 + embeddings + documen
 authors:
   - family-names: Ali
     given-names: Irfan
-version: "0.5.0"
+version: "0.5.1"
 date-released: "2026-10-31"
 license: MIT
 repository-code: "https://github.com/irfanalidv/RAGNav"

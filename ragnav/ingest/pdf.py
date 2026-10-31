@@ -9,6 +9,18 @@ from ..models import Block, Document
 from ..papers import pdf_heuristics as paper
 
 
+def _import_pymupdf() -> Any:
+    """Import PyMuPDF, preferring ``pymupdf`` (the ``fitz`` alias is deprecated)."""
+    try:
+        import pymupdf
+
+        return pymupdf
+    except ImportError:
+        import fitz  # older PyMuPDF releases
+
+        return fitz
+
+
 @dataclass(frozen=True)
 class PdfIngestOptions:
     doc_id_prefix: str = "pdf:"
@@ -33,7 +45,7 @@ def ingest_pdf_bytes(
     Each page becomes a block with ``anchors["page"]`` so retrieval can filter by page.
     """
     try:
-        import fitz  # PyMuPDF
+        fitz = _import_pymupdf()
     except Exception as e:
         raise RAGNavIngestError(
             'Missing optional dependency `pymupdf`. Install with: pip install -e ".[pdf]"'
@@ -95,7 +107,7 @@ def ingest_pdf_bytes_paper(
     This is intentionally heuristic (no layout model) but works well for arXiv-style PDFs.
     """
     try:
-        import fitz  # PyMuPDF
+        fitz = _import_pymupdf()
     except Exception as e:
         raise RAGNavIngestError(
             'Missing optional dependency `pymupdf`. Install with: pip install -e ".[pdf]"'
