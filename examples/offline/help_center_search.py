@@ -78,18 +78,19 @@ def main() -> int:
     print(f"Indexed {len(blocks)} blocks from {len(documents)} articles ({mode})\n")
 
     for query, filters in [
-        ("How long do I have to request a refund?", None),
+        ("What is the refund window for a purchase?", None),
         ("What happens when I exceed the rate limit?", None),
         ("How many tokens can I have?", {"area": "developer"}),
     ]:
         res = retriever.retrieve(
             query, k_final=2, use_vectors=use_embeddings, required_doc_metadata=filters
         )
-        top = next(b for b in res.blocks if b.type != "heading")
+        top = res.blocks[0]  # best hit first; its parents / children follow it
+        evidence = next((b for b in res.blocks if b.type != "heading"), top)
         print(f"Q: {query}" + (f"   (filter: {filters})" if filters else ""))
-        print(f"   confidence={res.confidence.value}  section={' > '.join(top.heading_path)}")
-        print(f"   {top.text.splitlines()[0]}")
-        print(f"   [{top.block_id}]\n")
+        print(f"   confidence={res.confidence.value}  top hit=[{top.block_id}]")
+        print(f"   section : {' > '.join(evidence.heading_path)}")
+        print(f"   evidence: {evidence.text.splitlines()[0]}\n")
     return 0
 
 
